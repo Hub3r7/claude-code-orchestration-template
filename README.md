@@ -5,9 +5,11 @@ A drop-in orchestration template for Claude Code. Copy a team into your project 
 > **Requires Claude Code.** This framework uses Claude Code's sub-agent system
 > (`.claude/agents/*.md` and `CLAUDE.md`). It does not work with other AI tools or IDEs.
 
-> **Cost warning.** This framework uses multi-agent chains where each agent is a separate Claude API call. Depending on your model assignment (Opus/Sonnet/Haiku per agent) and task tier, a single workflow can consume significant tokens. The framework was designed with **quality over cost** in mind — every tier adds review depth, not shortcuts. During bootstrap, the orchestrator will discuss model assignment with you to help optimize costs for your use case.
+> **Cost warning.** This framework uses multi-agent chains where each agent is a separate Claude API call. Depending on your model assignment (Opus/Sonnet/Haiku per agent) and task tier, a single workflow can consume significant tokens. The framework was designed with **quality over cost** in mind — every tier adds review depth, not shortcuts. During bootstrap, the orchestrator will discuss model assignment with you to help optimize costs for your use case. The `software-development` team layers vendored engineering skills onto each agent: on non-trivial work an agent loads its phase's doctrine — roughly **10–20k extra tokens per agent invocation** on top of the base chain cost. That is a deliberate quality-over-cost trade; budget for it, and lean on per-project skill activation (bootstrap) and tier selection to keep it proportional.
 
 > **Team maturity.** The `software-development` team has received the most attention and refinement so far. All other teams share the same core architecture and protocols but have not been tested in practice yet. They are structurally complete and ready to use, but expect to iterate on agent instructions as you work with them.
+
+> **Engineering-skills symbiosis is new.** The `software-development` team's vendored engineering-skills layer (23 skills mapped to agents as mandatory-by-role workflow) is freshly integrated and **has not yet been validated end-to-end in a real chain run.** The design is sound on paper — the tier chain is the engineering lifecycle, so skills activate structurally — but expect to tune skill mappings, the Tier 0 exception, and token budgets once you exercise it on real work. The other three teams do not yet include this layer.
 
 ## Teams
 
