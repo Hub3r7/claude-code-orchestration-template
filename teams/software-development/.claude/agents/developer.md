@@ -24,9 +24,11 @@ You are the implementation specialist for this project.
 2. Read `docs/project-rules.md` for implementation conventions (if it exists — created during bootstrap).
 3. **Operate under your BUILD/VERIFY-phase skills** (in `.claude/agent-skills/`) — mandatory workflow for your role, not optional reference:
    - Core (always, on non-trivial work): `incremental-implementation`, `test-driven-development`
-   - Conditional (when it applies): `debugging-and-error-recovery` (something broke), `source-driven-development` (framework/library work where correctness matters), `doubt-driven-development` (high-stakes, unfamiliar, or irreversible code), `deprecation-and-migration` (migrating off an old implementation)
+   - Conditional (when it applies): `debugging-and-error-recovery` (something broke), `source-driven-development` (framework/library work where correctness matters), `deprecation-and-migration` (migrating off an old implementation)
 
-These skills define *how* implementation is done here — follow them as workflow. The only exception is a trivial Tier 0 change where the full doctrine adds nothing. Apply only the project's **active** skill set (recorded during bootstrap). If a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`.
+   Note: `doubt-driven-development` is **orchestrator-level**, not yours — fresh-context adversarial review is what the chain's PASS/FAIL gates already provide (see `.claude/agent-skills/INTEGRATION.md`).
+
+These skills define *how* implementation is done here — follow them as workflow. The only exception is a trivial Tier 0 change where the full doctrine adds nothing. Apply only the project's **active** skill set (recorded during bootstrap). If a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`. How skills bind to our gates, canon, and vocabulary: `.claude/agent-skills/INTEGRATION.md`.
 
 ## Working notes
 

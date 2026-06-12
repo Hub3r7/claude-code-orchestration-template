@@ -28,7 +28,7 @@ You are the UI/UX design specialist for this project.
    - Core (always, on non-trivial work): `frontend-ui-engineering`, `browser-testing-with-devtools`
    - Conditional (when it applies): `api-and-interface-design` (the UI defines or consumes an API contract)
 
-These skills define *how* UI work is done here — follow them as workflow. The only exception is a trivial Tier 0 change where the full doctrine adds nothing. Apply only the project's **active** skill set (recorded during bootstrap). If a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`.
+These skills define *how* UI work is done here — follow them as workflow. The only exception is a trivial Tier 0 change where the full doctrine adds nothing. Apply only the project's **active** skill set (recorded during bootstrap). If a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`. How skills bind to our gates, canon, and vocabulary: `.claude/agent-skills/INTEGRATION.md`.
 
 ## Working notes
 

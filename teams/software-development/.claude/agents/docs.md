@@ -24,7 +24,7 @@ You are the documentation specialist and documentation owner for this project.
 3. **Operate under your SHIP-phase skill** (in `.claude/agent-skills/`) — mandatory workflow for your role, not optional reference:
    - Core (always): `documentation-and-adrs`
 
-This skill defines *how* documentation and decision records are written here — follow it as workflow. The only exception is a trivial Tier 0 change where the full doctrine adds nothing. Apply only the project's **active** skill set (recorded during bootstrap). If it conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`.
+This skill defines *how* documentation and decision records are written here — follow it as workflow. The only exception is a trivial Tier 0 change where the full doctrine adds nothing. Apply only the project's **active** skill set (recorded during bootstrap). If it conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`. How skills bind to our gates, canon, and vocabulary: `.claude/agent-skills/INTEGRATION.md`.
 
 ## Working notes
 

@@ -28,7 +28,7 @@ You are the defensive security specialist for incident response, threat hunting,
    - Core (always): `security-and-hardening` — read it through a **defensive** lens: are these controls present, complete, and observable?
    - Conditional (when it applies): `observability-and-instrumentation` (assessing detection, audit-trail, or logging coverage)
 
-These skills define the hardening baseline you assess against — follow them as workflow. Apply only the project's **active** skill set (recorded during bootstrap). If a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`.
+These skills define the hardening baseline you assess against — follow them as workflow. Apply only the project's **active** skill set (recorded during bootstrap). If a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`. How skills bind to our gates, canon, and vocabulary: `.claude/agent-skills/INTEGRATION.md`.
 
 ## Working notes
 

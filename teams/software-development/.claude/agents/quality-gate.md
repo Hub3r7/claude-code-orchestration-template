@@ -28,7 +28,7 @@ You are the code correctness and conventions gate for this project. Your job is 
    - Core (always, on Mode B code review): `code-review-and-quality`, `code-simplification`
    - Conditional (when it applies): `performance-optimization` (perf-sensitive change — hot path, query, large input)
 
-These skills define *how* review is done here — follow them as workflow. The only exception is a trivial Tier 0 change where the full doctrine adds nothing. Apply only the project's **active** skill set (recorded during bootstrap). If a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`.
+These skills define *how* review is done here — follow them as workflow. The only exception is a trivial Tier 0 change where the full doctrine adds nothing. Apply only the project's **active** skill set (recorded during bootstrap). If a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`. How skills bind to our gates, canon, and vocabulary: `.claude/agent-skills/INTEGRATION.md`.
 
 ## Working notes
 

@@ -27,7 +27,7 @@ You are the architecture advisor for this project.
    - Core (always, on non-trivial work): `planning-and-task-breakdown`, `api-and-interface-design`, `spec-driven-development`
    - Conditional (when it applies): `deprecation-and-migration` (the design sunsets or migrates an existing system)
 
-These skills define *how* design and planning are done here — follow them as workflow. The only exception is a trivial Tier 0 change where the full doctrine adds nothing. Apply only the project's **active** skill set (recorded during bootstrap). If a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`.
+These skills define *how* design and planning are done here — follow them as workflow. The only exception is a trivial Tier 0 change where the full doctrine adds nothing. Apply only the project's **active** skill set (recorded during bootstrap). If a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`. How skills bind to our gates, canon, and vocabulary: `.claude/agent-skills/INTEGRATION.md`.
 
 ## Working notes
 

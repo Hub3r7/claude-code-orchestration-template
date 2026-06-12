@@ -19,13 +19,14 @@ phases run, and therefore how much doctrine applies.
 - **Upstream commit:** `d187883b7d761265309cdcc0f202cc76b4b3fb06` (2026-06-11)
 - **License:** MIT © 2025 Addy Osmani — see [`LICENSE.upstream`](LICENSE.upstream)
 - **Vendored:** 23 of 24 skills (all except the `using-agent-skills` meta-skill, whose
-  discovery logic and Core Operating Behaviors are distilled into the team `CLAUDE.md`).
+  discovery logic and Core Operating Behaviors are distilled into the team `CLAUDE.md`),
+  plus all 5 upstream `references/` checklists (security, performance, accessibility,
+  testing, orchestration) so every "See Also → `references/…`" link resolves.
 
-Only `SKILL.md` files were vendored. The upstream repo-level `references/` directory was
-not copied, so "See Also → `references/…`" pointers are dangling here; treat them as
-optional deep-dives available upstream. To refresh, re-fetch the same paths at a newer
-commit and bump the hash above. CI does not pin these files; a diff against upstream is
-a manual step.
+How these skills bind to our framework — gates, canon, stack, and per-skill notes — is in
+[`INTEGRATION.md`](INTEGRATION.md). To refresh, re-fetch the same paths at a newer commit
+and bump the hash above. CI checks that `references/` links resolve and that every skill
+named in an agent exists on disk; a deeper diff against upstream is a manual step.
 
 ## Lifecycle ↔ chain ↔ skills
 
@@ -36,7 +37,7 @@ it and the skills that agent operates under:
 |-------|----------|--------|
 | **DEFINE** | orchestrator (pre-chain) | `interview-me`, `idea-refine`, `context-engineering` |
 | **PLAN** | architect | `planning-and-task-breakdown`, `api-and-interface-design`, `spec-driven-development` |
-| **BUILD** | developer, ui-designer | `incremental-implementation`, `test-driven-development`, `source-driven-development`, `doubt-driven-development`, `frontend-ui-engineering` |
+| **BUILD** | developer, ui-designer | `incremental-implementation`, `test-driven-development`, `source-driven-development`, `frontend-ui-engineering` |
 | **VERIFY** | developer, ui-designer | `debugging-and-error-recovery`, `browser-testing-with-devtools` |
 | **REVIEW** | quality-gate, hunter, defender | `code-review-and-quality`, `code-simplification`, `performance-optimization`, `security-and-hardening`, `observability-and-instrumentation` |
 | **SHIP** | docs, orchestrator | `documentation-and-adrs`, `git-workflow-and-versioning`, `ci-cd-and-automation`, `shipping-and-launch`, `deprecation-and-migration` |
@@ -51,16 +52,18 @@ fires); they are still mandatory *when* they apply, not optional.
 |-------|------|-------------|
 | `architect` | `planning-and-task-breakdown`, `api-and-interface-design`, `spec-driven-development` | `deprecation-and-migration` (sunset/migration decisions) |
 | `ui-designer` | `frontend-ui-engineering`, `browser-testing-with-devtools` | `api-and-interface-design` (consuming/defining an API) |
-| `developer` | `incremental-implementation`, `test-driven-development` | `debugging-and-error-recovery` (something broke), `source-driven-development` (framework/library work), `doubt-driven-development` (high-stakes/unfamiliar code), `deprecation-and-migration` (migration) |
+| `developer` | `incremental-implementation`, `test-driven-development` | `debugging-and-error-recovery` (something broke), `source-driven-development` (framework/library work), `deprecation-and-migration` (migration) |
 | `quality-gate` | `code-review-and-quality`, `code-simplification` | `performance-optimization` (perf-sensitive change) |
 | `hunter` | `security-and-hardening` (offensive lens) | — |
 | `defender` | `security-and-hardening` (defensive lens) | `observability-and-instrumentation` (detection/audit coverage) |
 | `docs` | `documentation-and-adrs` | — |
 
 Orchestrator-level (not an agent): `interview-me` and `idea-refine` (underspecified or
-vague asks, in DEFINE), `context-engineering` (session/context setup), and the SHIP
-automation skills `git-workflow-and-versioning`, `ci-cd-and-automation`,
-`shipping-and-launch` — these inform the `/commit`, `/push`, and release workflows.
+vague asks, in DEFINE), `context-engineering` (session/context setup),
+`doubt-driven-development` (fresh-context adversarial review — the chain's PASS/FAIL gates
+realize it structurally), and the SHIP automation skills `git-workflow-and-versioning`,
+`ci-cd-and-automation`, `shipping-and-launch` — these inform the `/commit`, `/push`, and
+release workflows. See [`INTEGRATION.md`](INTEGRATION.md) for why.
 
 ## Per-project activation (set during bootstrap)
 

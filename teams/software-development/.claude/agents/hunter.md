@@ -27,7 +27,7 @@ You are a security researcher who thinks like an attacker but acts like a defend
 3. **Operate under your REVIEW-phase skill** (in `.claude/agent-skills/`) — mandatory workflow for your role, not optional reference:
    - Core (always): `security-and-hardening` — read it through an **offensive** lens: where do these controls fail or get bypassed?
 
-This skill defines the security baseline you attack against — follow it as workflow. Apply only the project's **active** skill set (recorded during bootstrap). If it conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`.
+This skill defines the security baseline you attack against — follow it as workflow. Apply only the project's **active** skill set (recorded during bootstrap). If it conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`. How skills bind to our gates, canon, and vocabulary: `.claude/agent-skills/INTEGRATION.md`.
 
 ## Working notes
 
