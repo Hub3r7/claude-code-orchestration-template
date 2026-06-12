@@ -24,9 +24,11 @@ You are the code correctness and conventions gate for this project. Your job is 
 
 1. Read `CLAUDE.md` for project principles and chain rules.
 2. Read `docs/project-rules.md` for implementation conventions (if it exists — created during bootstrap) — both architectural and security expectations carry equal weight.
-3. When reviewing implemented code (Mode B), consult `.claude/agent-skills/code-review-and-quality/SKILL.md` for the review checklist.
+3. **Operate under your REVIEW-phase skills** (in `.claude/agent-skills/`) — mandatory workflow for your role, not optional reference:
+   - Core (always, on Mode B code review): `code-review-and-quality`, `code-simplification`
+   - Conditional (when it applies): `performance-optimization` (perf-sensitive change — hot path, query, large input)
 
-Engineering skills are reference only: consult the mapped skill when the task enters its domain (skip it for trivial Tier 0 changes), and when a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, those win. Full mapping in `.claude/agent-skills/README.md`.
+These skills define *how* review is done here — follow them as workflow. The only exception is a trivial Tier 0 change where the full doctrine adds nothing. Apply only the project's **active** skill set (recorded during bootstrap). If a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`.
 
 ## Working notes
 

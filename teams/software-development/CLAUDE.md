@@ -23,6 +23,19 @@ _Describe what the project does, who it is for, and its primary design goals._
 
 <!-- [PROJECT-SPECIFIC] Add project-specific principles here (e.g., operator anonymity, zero-trust, etc.). -->
 
+## Operating Behaviors (baseline — every agent and the orchestrator)
+
+These are always on, across all tiers and chains, independent of any skill or phase —
+non-negotiable. Distilled from the agent-skills meta-skill; they make the system safer
+and more autonomous by default.
+
+1. **Surface assumptions.** Before non-trivial work, state the assumptions you are making about requirements, architecture, and scope — "correct me now or I proceed with these." Never silently fill ambiguity.
+2. **Manage confusion actively.** On a contradiction or unclear spec: stop, name the specific confusion, present the tradeoff or ask — do not proceed on a guess. For agents this means raising a BLOCKED section so the chain pauses.
+3. **Push back when warranted.** You are not a yes-machine. Name the concrete downside (quantify when you can), propose an alternative, and accept an informed override. Sycophancy is a failure mode.
+4. **Enforce simplicity.** Resist overcomplication — prefer the boring, obvious solution; abstractions must earn their complexity. (Reinforces Core Principle 6.)
+5. **Maintain scope discipline.** Surgical precision — touch only what the task requires. No unsolicited cleanup, refactors, deletions, or extra features.
+6. **Verify, don't assume.** "Seems right" is never done — there must be evidence: passing tests, build output, or runtime data. (Reinforces Core Principle 3.)
+
 ## Architecture
 
 <!-- [PROJECT-SPECIFIC] Replace with your project's directory structure. Example: -->
@@ -114,6 +127,8 @@ Every agent reads CLAUDE.md **before** reading its own notes. If notes contradic
 
 **Claude Code (orchestrator) determines the tier and invokes the first agent.** Architect is only involved from Tier 2 upward. **docs is always last.**
 
+Each position in the chain is an engineering-lifecycle phase (DEFINE→PLAN→BUILD→VERIFY→REVIEW→SHIP), and each phase carries the skills its agent operates under — see [Engineering Skills](#engineering-skills--the-lifecycle-inside-the-chain). The tier therefore scales how much of the lifecycle runs: a higher tier adds phases (agents), which adds doctrine.
+
 | Tier | Change type | Chain |
 |------|-------------|-------|
 | 0 — Trivial | Typo fix, comment, config label | developer → docs (code/config) OR docs alone (pure documentation) |
@@ -144,21 +159,48 @@ Every agent reads CLAUDE.md **before** reading its own notes. If notes contradic
 | `defender` | Defensive security / hardening assessment | Tier 3 (data/artifacts) and Tier 4 |
 | `docs` | Documentation | Always last in chain |
 
-## Engineering Skills (agent reference knowledge)
+## Engineering Skills — the lifecycle inside the chain
 
-Agents draw on **vendored engineering skills** — best-practice doctrine for how to do the work well (TDD, incremental delivery, secure design, code review, API design, ADRs). These live in `.claude/agent-skills/` as plain reference documents, **not** orchestrator slash-commands: each agent reads the skill mapped to its role when a task enters that skill's domain (and skips it for trivial Tier 0 changes). This keeps activation explicit and tier-aware rather than magical.
+The tier chain **is** the engineering lifecycle. Each position in the chain is a
+lifecycle phase, and each phase carries vendored **engineering skills** (the doctrine
+for *how* to do that phase well — spec, TDD, secure design, review, ship). The skills
+live in `.claude/agent-skills/` (23 of them, from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), MIT).
 
-| Agent | Consults |
-|-------|----------|
-| `architect` | `planning-and-task-breakdown`, `api-and-interface-design` |
-| `ui-designer` | `frontend-ui-engineering` |
-| `developer` | `test-driven-development`, `incremental-implementation` |
-| `quality-gate` | `code-review-and-quality` |
-| `hunter` | `security-and-hardening` (offensive lens) |
-| `defender` | `security-and-hardening` (defensive lens) |
-| `docs` | `documentation-and-adrs` |
+**Activation is structural, not explicit.** An agent operates under the skills mapped
+to its phase as a **mandatory part of its workflow** — nobody "calls" a skill. Being
+the developer in BUILD *means* operating under TDD and incremental-implementation. This
+is the symbiosis: the framework supplies *who / when / with what control* (chain, tiers,
+gates); the skills supply *how to do the work well*.
 
-Skills are level-3 reference (see Knowledge Hierarchy): subordinate to CLAUDE.md and `docs/project-rules.md`. They illustrate principles with a specific stack — the principle transfers, the project's actual stack is whatever bootstrap recorded. Source, license, and refresh instructions: `.claude/agent-skills/README.md`.
+**Tier scales depth automatically.** The tier decides which phases run (which agents are
+in the chain), so it decides how much doctrine applies — no separate "when to load a
+skill" logic. Tier 0 runs a slice of BUILD with light doctrine; Tier 4 runs the whole
+DEFINE→SHIP lifecycle with all of it.
+
+| Phase | Agent(s) | Skills (core) |
+|-------|----------|---------------|
+| DEFINE | orchestrator (pre-chain) | `interview-me`, `idea-refine`, `context-engineering` |
+| PLAN | architect | `planning-and-task-breakdown`, `api-and-interface-design`, `spec-driven-development` |
+| BUILD | developer, ui-designer | `incremental-implementation`, `test-driven-development`, `frontend-ui-engineering` |
+| VERIFY | developer, ui-designer | `debugging-and-error-recovery`, `browser-testing-with-devtools` |
+| REVIEW | quality-gate, hunter, defender | `code-review-and-quality`, `code-simplification`, `performance-optimization`, `security-and-hardening` |
+| SHIP | docs, orchestrator | `documentation-and-adrs`, `git-workflow-and-versioning`, `shipping-and-launch` |
+
+Each agent's full core + conditional skill set, the orchestrator-level skills, and the
+per-project activation rules live in **`.claude/agent-skills/README.md`** — the single
+source of truth for the mapping. Agents self-load their mapped skills (see each agent's
+`## Before any task`).
+
+**Per-project activation:** the table above is the full catalog. Bootstrap infers the
+*active* set from the project profile (UI → frontend/browser skills; web → performance/
+observability; CLI → neither) and records it here and in `project-context.md`. Inactive
+skills stay on disk but drop out of the agents' mapping, so no agent reads doctrine that
+doesn't apply.
+
+Skills are **level-3 reference** (see Knowledge Hierarchy): subordinate to CLAUDE.md and
+`docs/project-rules.md`. They illustrate principles with a specific stack — the principle
+transfers; the project's actual stack is whatever bootstrap recorded. When a skill
+conflicts with the project, the project wins.
 
 ## Language & Style
 

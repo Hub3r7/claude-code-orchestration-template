@@ -119,6 +119,31 @@ and in each agent's `.md` file header.
 **Cost awareness rule:** The orchestrator should mention approximate relative cost:
 Opus ≈ 3× Sonnet ≈ 15× Haiku. This helps users make informed trade-offs.
 
+### Phase 3b — Skill Activation
+
+The team ships 23 vendored **engineering skills** in `.claude/agent-skills/` (the full
+catalog and per-agent mapping are in `.claude/agent-skills/README.md`). Not every project
+needs every skill. The orchestrator infers the **active set** from the project profile
+gathered in Phases 1–2, proposes it, and the user confirms or adjusts.
+
+**Inference rules (derive from the profile, do not ask separately):**
+
+- **Always active** (every software project): `planning-and-task-breakdown`, `spec-driven-development`, `incremental-implementation`, `test-driven-development`, `debugging-and-error-recovery`, `code-review-and-quality`, `code-simplification`, `security-and-hardening`, `documentation-and-adrs`, `git-workflow-and-versioning`, `context-engineering`.
+- **Has a UI / user-facing frontend** → add `frontend-ui-engineering`, `browser-testing-with-devtools`; the `ui-designer` agent is active. Otherwise these are inactive and ui-designer is dormant.
+- **Exposes or consumes an HTTP/RPC API, or has module boundaries that matter** → add `api-and-interface-design`.
+- **Runs in production / is a long-lived service or web app** → add `performance-optimization`, `observability-and-instrumentation`, `shipping-and-launch`, `ci-cd-and-automation`.
+- **Will retire or migrate existing systems** → add `deprecation-and-migration`.
+- **DEFINE helpers** `interview-me` and `idea-refine` are orchestrator-level and always available for underspecified or vague asks — no activation needed.
+
+**Present the proposed active set grouped by lifecycle phase** (PLAN / BUILD-VERIFY /
+REVIEW / SHIP), name what was left **inactive** and why (e.g. "no UI → frontend and
+browser-testing skills inactive"), and ask: *"Does this match how you want the agents to
+work? Anything to switch on or off?"*
+
+Record the confirmed active set in Phase 4 (in `CLAUDE.md` and `project-context.md`).
+Inactive skills stay vendored on disk but are dropped from the agents' active mapping, so
+no agent reads doctrine that does not apply to the project.
+
 ### Phase 4 — Agent Specialization
 
 Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sections:
@@ -134,6 +159,7 @@ Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sec
    - What NOT to do (project-specific additions)
    - Current status
    - Response language (the language determined in Phase 0 — write the language name in English, e.g. "Communicate with the user in Czech.")
+   - The **active engineering skill set** from Phase 3b — record it in the "Engineering Skills" section (mark inactive skills and why).
 
 2. **`.claude/agents/architect.md`** — Add:
    - Project-specific review criteria (what to check during design review)
@@ -163,7 +189,7 @@ Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sec
    - Documentation templates for the project's component type
    - What documents to maintain and their update triggers
 
-9. **`.claude/docs/project-context.md`** — Fill in all sections.
+9. **`.claude/docs/project-context.md`** — Fill in all sections, including the "Engineering Skills (active set)" table from Phase 3b (must match the active set written to `CLAUDE.md`).
 10. **`docs/project-rules.md`** — Create this file during bootstrap with project-specific implementation rules extracted from CLAUDE.md. Move detailed conventions (language & style, naming, testing, environment, what NOT to do) here. This keeps CLAUDE.md lean for the orchestrator while agents get full rules.
 11. **Agent self-load update** — After creating `docs/project-rules.md`, update every agent's `## Before any task` section to include:
     ```
@@ -176,13 +202,14 @@ Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sec
 
 After updating all files:
 1. Read back each modified file to verify no `[PROJECT-SPECIFIC]` placeholders remain (check `CLAUDE.md`, all 7 agent files under `.claude/agents/`, `.claude/docs/project-context.md`, AND `docs/project-rules.md`)
-2. Verify consistency across files (same architecture description, same conventions)
+2. Verify consistency across files (same architecture description, same conventions, and the **active engineering skill set is identical** in `CLAUDE.md` and `project-context.md`)
 3. Report to the user:
 
 ```
 BOOTSTRAP COMPLETE
 ==================
 Updated: CLAUDE.md, 7 agent files, project-context.md, project-rules.md
+Active engineering skills: <N> of 23 (inactive: <list or "none">)
 Remaining placeholders: 0
 Ready to start development.
 ```

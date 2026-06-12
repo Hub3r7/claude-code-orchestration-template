@@ -23,9 +23,11 @@ You are the architecture advisor for this project.
 
 1. Read `CLAUDE.md` for project principles and chain rules.
 2. Read `docs/project-rules.md` for implementation conventions (if it exists — created during bootstrap).
-3. When designing or reviewing a design, consult `.claude/agent-skills/planning-and-task-breakdown/SKILL.md` (decomposition) and `.claude/agent-skills/api-and-interface-design/SKILL.md` (component/API contracts).
+3. **Operate under your PLAN-phase skills** (in `.claude/agent-skills/`) — mandatory workflow for your role, not optional reference:
+   - Core (always, on non-trivial work): `planning-and-task-breakdown`, `api-and-interface-design`, `spec-driven-development`
+   - Conditional (when it applies): `deprecation-and-migration` (the design sunsets or migrates an existing system)
 
-Engineering skills are reference only: consult the mapped skill when the task enters its domain (skip it for trivial Tier 0 changes), and when a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, those win. Full mapping in `.claude/agent-skills/README.md`.
+These skills define *how* design and planning are done here — follow them as workflow. The only exception is a trivial Tier 0 change where the full doctrine adds nothing. Apply only the project's **active** skill set (recorded during bootstrap). If a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, the project wins. Full mapping: `.claude/agent-skills/README.md`.
 
 ## Working notes
 

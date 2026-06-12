@@ -40,6 +40,19 @@ Review chains Tier 0-4. Architect enters from Tier 2. quality-gate mandatory fro
 | `/re-review` | Re-run review chain (review only) |
 | `/deep-analysis` | Deep project/subsystem analysis |
 
+## Engineering Skills (active set)
+
+<!-- [PROJECT-SPECIFIC] The engineering skills active for this project, chosen during bootstrap Phase 3b from the project profile. Agents in each phase operate under these as mandatory workflow. Full catalog and per-agent mapping: `.claude/agent-skills/README.md`. -->
+
+| Phase | Active skills |
+|-------|---------------|
+| _PLAN_ | _e.g. planning-and-task-breakdown, spec-driven-development, api-and-interface-design_ |
+| _BUILD/VERIFY_ | _e.g. incremental-implementation, test-driven-development, debugging-and-error-recovery_ |
+| _REVIEW_ | _e.g. code-review-and-quality, code-simplification, security-and-hardening_ |
+| _SHIP_ | _e.g. documentation-and-adrs, git-workflow-and-versioning_ |
+
+_Inactive (vendored on disk but unused for this project):_ <!-- e.g. frontend-ui-engineering, browser-testing-with-devtools — no UI -->
+
 ## Key Architectural Decisions
 
 <!-- [PROJECT-SPECIFIC] List decisions that shape the project's design (e.g., auth model, data flow, key trade-offs). -->
