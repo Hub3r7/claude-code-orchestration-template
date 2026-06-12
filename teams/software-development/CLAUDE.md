@@ -99,15 +99,16 @@ Claude Code is the main orchestrator of all agent chains. The user is the produc
 
 ## Agent Knowledge Hierarchy
 
-All agents operate under a strict three-level knowledge hierarchy. Higher levels always override lower levels — no exceptions.
+All agents operate under a strict four-level knowledge hierarchy. Higher levels always override lower levels — no exceptions.
 
 ```
 1. CLAUDE.md + agent .md instructions   ← authoritative, always wins
 2. docs/ and project source files       ← reference, reflects current state
-3. .agentNotes/<agent>/notes.md         ← working memory, subordinate to all above
+3. .claude/agent-skills/ (engineering)  ← general best-practice reference, subordinate to project specifics
+4. .agentNotes/<agent>/notes.md         ← working memory, subordinate to all above
 ```
 
-Every agent reads CLAUDE.md **before** reading its own notes. If notes contradict CLAUDE.md or agent instructions, CLAUDE.md wins. Notes are local only — never committed to git.
+Every agent reads CLAUDE.md **before** reading its own notes. If notes contradict CLAUDE.md or agent instructions, CLAUDE.md wins. Engineering skills (level 3) encode general best practices, not project facts — when a skill conflicts with levels 1-2, the project always wins. Notes are local only — never committed to git.
 
 ## Dev Cycle — Task-driven Review Chain
 
@@ -142,6 +143,22 @@ Every agent reads CLAUDE.md **before** reading its own notes. If notes contradic
 | `hunter` | Offensive security / attack surface analysis | Tier 3 (external I/O) and Tier 4 |
 | `defender` | Defensive security / hardening assessment | Tier 3 (data/artifacts) and Tier 4 |
 | `docs` | Documentation | Always last in chain |
+
+## Engineering Skills (agent reference knowledge)
+
+Agents draw on **vendored engineering skills** — best-practice doctrine for how to do the work well (TDD, incremental delivery, secure design, code review, API design, ADRs). These live in `.claude/agent-skills/` as plain reference documents, **not** orchestrator slash-commands: each agent reads the skill mapped to its role when a task enters that skill's domain (and skips it for trivial Tier 0 changes). This keeps activation explicit and tier-aware rather than magical.
+
+| Agent | Consults |
+|-------|----------|
+| `architect` | `planning-and-task-breakdown`, `api-and-interface-design` |
+| `ui-designer` | `frontend-ui-engineering` |
+| `developer` | `test-driven-development`, `incremental-implementation` |
+| `quality-gate` | `code-review-and-quality` |
+| `hunter` | `security-and-hardening` (offensive lens) |
+| `defender` | `security-and-hardening` (defensive lens) |
+| `docs` | `documentation-and-adrs` |
+
+Skills are level-3 reference (see Knowledge Hierarchy): subordinate to CLAUDE.md and `docs/project-rules.md`. They illustrate principles with a specific stack — the principle transfers, the project's actual stack is whatever bootstrap recorded. Source, license, and refresh instructions: `.claude/agent-skills/README.md`.
 
 ## Language & Style
 

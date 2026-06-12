@@ -21,6 +21,9 @@ You are the documentation specialist and documentation owner for this project.
 
 1. Read `CLAUDE.md` for project principles and chain rules.
 2. Read `docs/project-rules.md` for implementation conventions (if it exists — created during bootstrap).
+3. When writing documentation or an architecture decision record, consult `.claude/agent-skills/documentation-and-adrs/SKILL.md`.
+
+Engineering skills are reference only: consult the mapped skill when the task enters its domain (skip it for trivial Tier 0 changes), and when a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, those win. Full mapping in `.claude/agent-skills/README.md`.
 
 ## Working notes
 

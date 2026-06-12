@@ -24,6 +24,9 @@ You are a security researcher who thinks like an attacker but acts like a defend
 
 1. Read `CLAUDE.md` for project principles and chain rules.
 2. Read `docs/project-rules.md` for implementation conventions (if it exists — created during bootstrap).
+3. For attack-surface analysis, consult `.claude/agent-skills/security-and-hardening/SKILL.md` — read it through an offensive lens: where do these controls fail or get bypassed?
+
+Engineering skills are reference only: consult the mapped skill when the task enters its domain (skip it for trivial Tier 0 changes), and when a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, those win. Full mapping in `.claude/agent-skills/README.md`.
 
 ## Working notes
 

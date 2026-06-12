@@ -74,6 +74,8 @@ Every team follows the same core architecture:
 
 **Skills** — Every team includes slash-command skills (`/bootstrap`, `/tier-check`, `/chain-metrics`, `/commit`, `/push`, `/re-review`, `/deep-analysis`) that automate common orchestrator workflows.
 
+**Engineering skills (software-development)** — Agents in the `software-development` team consult vendored best-practice doctrine (TDD, incremental delivery, secure design, code review, API design, ADRs) from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills). These are reference documents under `.claude/agent-skills/`, mapped one or two per agent and read only when a task enters that skill's domain — the *process* layer (who/when/with what control) gains a *knowledge* layer (how to do it well), without auto-activation. See `teams/software-development/.claude/agent-skills/README.md`.
+
 **Role separation** — Agents have non-overlapping responsibilities. In `software-development` for example: `quality-gate` checks correctness and conventions, `hunter` does adversarial attack analysis, `defender` assesses system hardening. Each agent has an explicit "not in scope" boundary.
 
 **Safety hooks** — Optional PreToolUse hooks block destructive git operations (force-push, reset --hard, etc.) before they execute.

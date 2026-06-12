@@ -24,6 +24,9 @@ You are the UI/UX design specialist for this project.
 
 1. Read `CLAUDE.md` for project principles and chain rules.
 2. Read `docs/project-rules.md` for implementation conventions (if it exists — created during bootstrap).
+3. For UI/UX design work, consult `.claude/agent-skills/frontend-ui-engineering/SKILL.md`.
+
+Engineering skills are reference only: consult the mapped skill when the task enters its domain (skip it for trivial Tier 0 changes), and when a skill conflicts with `CLAUDE.md` or `docs/project-rules.md`, those win. Full mapping in `.claude/agent-skills/README.md`.
 
 ## Working notes
 
