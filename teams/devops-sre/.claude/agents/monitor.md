@@ -175,7 +175,7 @@ After every review, issue an explicit **PASS** or **FAIL** verdict before any HA
 - After builder fixes: reviewer re-reviews, then monitor re-reviews
 - Re-review only the changed monitoring surface; if clean, issue PASS and hand off to docs
 
-**Re-review rule:** Every FAIL creates an implicit loop. The chain does not advance until PASS is issued.
+**Re-review rule:** Every FAIL creates an implicit loop. The chain does not advance until PASS is issued. **Circuit breaker:** after 3 FAIL iterations on the same work, pause the chain and escalate to the user with the outstanding findings instead of looping further — repeated FAILs signal unclear requirements or a design flaw, not just an implementation slip.
 
 ### Typical collaborations
 

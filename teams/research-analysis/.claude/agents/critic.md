@@ -124,7 +124,7 @@ After every review, issue an explicit **PASS** or **FAIL** verdict.
 - Mode B FAIL → return to **researcher** or **analyst** with specific quality issues
 - State clearly: `VERDICT: FAIL`
 
-**Re-review rule:** Every FAIL creates a loop until PASS is issued.
+**Re-review rule:** Every FAIL creates a loop until PASS is issued. **Circuit breaker:** after 3 FAIL iterations on the same work, pause the chain and escalate to the user with the outstanding findings instead of looping further — repeated FAILs signal unclear requirements or a design flaw, not just an implementation slip.
 
 ### Typical collaborations
 

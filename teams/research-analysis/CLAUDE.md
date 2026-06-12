@@ -122,7 +122,7 @@ Every agent reads CLAUDE.md **before** reading its own notes. If notes contradic
 | 3 — Extended | Multi-source analysis, cross-domain synthesis, complex methodology | planner → critic → researcher → analyst → critic → docs |
 | 4 — Full | Complete research project, comprehensive report, policy recommendation | planner → critic → researcher → analyst → critic → visualizer → docs |
 
-**Loop-back protocol:** Every review agent issues **PASS** or **FAIL**. FAIL pauses the chain and returns to the responsible agent with a numbered remediation list. No limit on iterations.
+**Loop-back protocol:** Every review agent issues **PASS** or **FAIL**. FAIL pauses the chain and returns to the responsible agent with a numbered remediation list. **Circuit breaker:** after 3 FAIL iterations on the same gate, the chain pauses and the orchestrator escalates to the user instead of looping further — repeated FAILs signal unclear requirements or a design flaw, not just an implementation slip.
 
 **Chain routing:** Agents write a HANDOFF section with full context for the next agent. The orchestrator follows the tier chain by default but may override. FAIL returns to: planner (methodology), researcher (sources), analyst (analysis).
 

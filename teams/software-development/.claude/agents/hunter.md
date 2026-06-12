@@ -200,7 +200,7 @@ After every review, issue an explicit **PASS** or **FAIL** verdict before any HA
 - After developer fixes: quality-gate re-reviews first, then hunter re-reviews if needed
 - Re-review only the changed attack surface; if clean, issue PASS and resume the chain
 
-**Re-review rule:** Every FAIL creates an implicit loop. The chain does not advance until PASS is issued.
+**Re-review rule:** Every FAIL creates an implicit loop. The chain does not advance until PASS is issued. **Circuit breaker:** after 3 FAIL iterations on the same work, pause the chain and escalate to the user with the outstanding findings instead of looping further — repeated FAILs signal unclear requirements or a design flaw, not just an implementation slip.
 
 ### Typical collaborations
 

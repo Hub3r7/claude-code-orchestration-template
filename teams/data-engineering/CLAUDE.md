@@ -127,7 +127,7 @@ Every agent reads CLAUDE.md **before** reading its own notes. If notes contradic
 | 3 — Extended | New data source integration, new output target, schema migration | architect → quality → builder → quality → security OR optimizer → docs |
 | 4 — Full | New pipeline, new data domain, PII handling, cross-system integration | architect → quality → builder → quality → security → optimizer → docs |
 
-**Loop-back protocol:** Every review agent issues **PASS** or **FAIL**. FAIL pauses the chain and returns to the builder with a numbered remediation list. No limit on iterations.
+**Loop-back protocol:** Every review agent issues **PASS** or **FAIL**. FAIL pauses the chain and returns to the builder with a numbered remediation list. **Circuit breaker:** after 3 FAIL iterations on the same gate, the chain pauses and the orchestrator escalates to the user instead of looping further — repeated FAILs signal unclear requirements or a design flaw, not just an implementation slip.
 
 **Chain routing:** Agents write a HANDOFF section with full context for the next agent. The orchestrator follows the tier chain by default but may override. Tier 3: security (PII, compliance, access control) vs optimizer (performance, cost, query optimization).
 

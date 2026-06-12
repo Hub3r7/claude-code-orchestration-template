@@ -64,7 +64,7 @@ Every team follows the same core architecture:
 
 **Tiered escalation** — Each task is classified by complexity (Tier 0-4). Simple changes get minimal review. Complex changes get the full agent chain. The depth of review matches the blast radius of the change.
 
-**Quality gates with loop-back** — Review agents issue explicit PASS or FAIL verdicts. FAIL pauses the chain and returns work for fixes. The chain does not advance until PASS is issued. No limit on iterations.
+**Quality gates with loop-back** — Review agents issue explicit PASS or FAIL verdicts. FAIL pauses the chain and returns work for fixes. The chain does not advance until PASS is issued. A circuit breaker escalates to the user after 3 FAIL iterations on the same gate, so a stuck loop never runs up cost indefinitely.
 
 **HANDOFF protocol** — Every agent writes a structured handoff with context for the next agent. The orchestrator follows the tier chain by default but may override routing when needed.
 
