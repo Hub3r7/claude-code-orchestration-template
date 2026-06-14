@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="440" viewBox="0 0 1280 440" font-family="Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">
+  <defs>
+    <radialGradient id="bg" cx="26%" cy="50%" r="85%">
+      <stop offset="0%" stop-color="#0e1730"/>
+      <stop offset="100%" stop-color="#070b18"/>
+    </radialGradient>
+    <radialGradient id="blast" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#d97757" stop-opacity="0.30"/>
+      <stop offset="45%" stop-color="#d97757" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#d97757" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="core" cx="38%" cy="34%" r="75%">
+      <stop offset="0%" stop-color="#ffb088"/>
+      <stop offset="55%" stop-color="#d97757"/>
+      <stop offset="100%" stop-color="#b85a3c"/>
+    </radialGradient>
+    <linearGradient id="track" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="25%" stop-color="#22d3ee"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="75%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#fb7185"/>
+    </linearGradient>
+  </defs>
+
+  <!-- card -->
+  <rect x="0.5" y="0.5" width="1279" height="439" rx="28" fill="url(#bg)" stroke="#1d2942" stroke-width="1"/>
+
+  <!-- blast radius rings -->
+  <g transform="translate(300 220)">
+    <circle r="190" fill="url(#blast)"/>
+    <circle r="40"  fill="none" stroke="#34d399" stroke-width="3" opacity="0.9"/>
+    <circle r="72"  fill="none" stroke="#22d3ee" stroke-width="3" opacity="0.85"/>
+    <circle r="104" fill="none" stroke="#818cf8" stroke-width="3" opacity="0.8"/>
+    <circle r="136" fill="none" stroke="#fbbf24" stroke-width="3" opacity="0.8"/>
+    <circle r="168" fill="none" stroke="#fb7185" stroke-width="3" opacity="0.85"/>
+
+    <!-- orchestrator core -->
+    <circle r="30" fill="#d97757" opacity="0.18"/>
+    <circle r="18" fill="url(#core)"/>
+    <circle r="18" fill="none" stroke="#ffd9c5" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="566" y="124" font-size="20" font-weight="600" letter-spacing="6" fill="#8b98ac">CLAUDE CODE</text>
+  <text x="562" y="186" font-size="56" font-weight="800" fill="#f0f4f8">Orchestration</text>
+  <text x="562" y="248" font-size="56" font-weight="800" fill="#f0f4f8">Template</text>
+  <text x="566" y="298" font-size="22" font-weight="400" fill="#9aa7b8">Review scaled to the blast radius of the change.</text>
+
+  <!-- tier scale -->
+  <line x1="588" y1="356" x2="1036" y2="356" stroke="url(#track)" stroke-width="2" opacity="0.7"/>
+  <g text-anchor="middle">
+    <g><circle cx="588"  cy="356" r="6" fill="#34d399"/><text x="588"  y="386" font-size="13" font-weight="600" fill="#7e8ba0">T0</text></g>
+    <g><circle cx="700"  cy="356" r="6" fill="#22d3ee"/><text x="700"  y="386" font-size="13" font-weight="600" fill="#7e8ba0">T1</text></g>
+    <g><circle cx="812"  cy="356" r="6" fill="#818cf8"/><text x="812"  y="386" font-size="13" font-weight="600" fill="#7e8ba0">T2</text></g>
+    <g><circle cx="924"  cy="356" r="6" fill="#fbbf24"/><text x="924"  y="386" font-size="13" font-weight="600" fill="#7e8ba0">T3</text></g>
+    <g><circle cx="1036" cy="356" r="6" fill="#fb7185"/><text x="1036" y="386" font-size="13" font-weight="600" fill="#7e8ba0">T4</text></g>
+  </g>
+  <text x="588"  y="332" font-size="12.5" fill="#5d6a80">one agent</text>
+  <text x="1036" y="332" font-size="12.5" fill="#5d6a80" text-anchor="end">full chain</text>
+</svg>

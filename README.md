@@ -1,6 +1,8 @@
-# Claude Code Orchestration Template
+<p align="center">
+  <img src="assets/hero.svg" alt="Claude Code Orchestration Template — review scaled to the blast radius of the change" width="100%">
+</p>
 
-**Multi-agent Claude Code with review scaled to the blast radius of the change.**
+# Claude Code Orchestration Template
 
 The orchestrator reads each task, rates how much it could break on a scale of 0 to 4, and routes it through the matching chain of agents. A typo runs one agent. A new security-critical component runs the whole chain: design, code review, an offensive and a defensive security pass, then docs. The higher the tier, the longer the chain.
 
@@ -73,7 +75,7 @@ To build your own, copy a team folder, rename the agents and adjust their roles,
 
 ## What to expect
 
-The software-development team is where the work went, and the part I trust. The other three share the same protocols but I've run them far less — expect to refine their agent instructions as you go. It's a personal project in active use, so it has rough edges. That's fine: it's a second version, not a finished product. Issues and pull requests welcome.
+The software-development team is where the work went, and the part I trust. The other three share the same protocols but I've run them far less — expect to refine their agent instructions as you go. It's a personal project in active use, so it has rough edges. That's fine: it's a second version, not a finished product.
 
 It spends tokens. Multi-agent review costs more than a single pass, and the skills layer adds more again. That's the trade for the depth — worth knowing before you point it at everything.
 
