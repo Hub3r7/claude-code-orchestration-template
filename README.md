@@ -1,148 +1,84 @@
 # Claude Code Orchestration Template
 
-A drop-in orchestration template for Claude Code. Copy a team into your project and get structured review chains, tiered escalation, and quality gates for your workflow domain — without writing any code. Everything lives in `CLAUDE.md` and `.claude/` files.
+**Multi-agent Claude Code with review scaled to the blast radius of the change.**
 
-> **Requires Claude Code.** This framework uses Claude Code's sub-agent system
-> (`.claude/agents/*.md` and `CLAUDE.md`). It does not work with other AI tools or IDEs.
+The orchestrator reads each task, rates how much it could break on a scale of 0 to 4, and routes it through the matching chain of agents. A typo runs one agent. A new security-critical component runs the whole chain: design, code review, an offensive and a defensive security pass, then docs. The higher the tier, the longer the chain.
 
-> **Cost warning.** This framework uses multi-agent chains where each agent is a separate Claude API call. Depending on your model assignment (Opus/Sonnet/Haiku per agent) and task tier, a single workflow can consume significant tokens. The framework was designed with **quality over cost** in mind — every tier adds review depth, not shortcuts. During bootstrap, the orchestrator will discuss model assignment with you to help optimize costs for your use case. The `software-development` team layers vendored engineering skills onto each agent: on non-trivial work an agent loads its phase's doctrine — roughly **10–20k extra tokens per agent invocation** on top of the base chain cost. That is a deliberate quality-over-cost trade; budget for it, and lean on per-project skill activation (bootstrap) and tier selection to keep it proportional.
+```
+ Tier 0    developer → docs
+ Tier 1    developer → quality-gate → docs
+ Tier 2    architect → quality-gate → developer → quality-gate → docs
+ Tier 3    architect → quality-gate → developer → quality-gate → hunter / defender → docs
+ Tier 4    architect → quality-gate → developer → quality-gate → hunter → defender → docs
+```
 
-> **Team maturity.** The `software-development` team has received the most attention and refinement so far. All other teams share the same core architecture and protocols but have not been tested in practice yet. They are structurally complete and ready to use, but expect to iterate on agent instructions as you work with them.
-
-> **Engineering-skills symbiosis is new.** The `software-development` team's vendored engineering-skills layer (23 skills mapped to agents as mandatory-by-role workflow) is freshly integrated and **has not yet been validated end-to-end in a real chain run.** The design is sound on paper — the tier chain is the engineering lifecycle, so skills activate structurally — but expect to tune skill mappings, the Tier 0 exception, and token budgets once you exercise it on real work. The other three teams do not yet include this layer.
-
-## Teams
-
-| Team | Domain | Agents | Use case |
-|------|--------|--------|----------|
-| [software-development](teams/software-development/) | Software engineering | architect, ui-designer, developer, quality-gate, hunter, defender, docs | Building and maintaining software projects |
-| [devops-sre](teams/devops-sre/) | Infrastructure & operations | architect, builder, reviewer, monitor, incident, security, docs | IaC, deployment, monitoring, incident response |
-| [data-engineering](teams/data-engineering/) | Data pipelines & analytics | architect, builder, quality, analyst, security, optimizer, docs | ETL/ELT, data quality, pipeline development |
-| [research-analysis](teams/research-analysis/) | Research & synthesis | planner, researcher, analyst, critic, visualizer, docs | Literature review, data analysis, reports |
-
-## Quick start
-
-1. **Pick a team** that matches your workflow domain.
-
-2. **Copy the team files** into your project root:
-
-   ```bash
-   # Clone the framework
-   git clone https://github.com/Hub3r7/claude-code-orchestration-template.git
-
-   # Copy team files to your project (replace TEAM with your choice)
-   TEAM=software-development
-   cp claude-code-orchestration-template/teams/$TEAM/CLAUDE.md /path/to/your/project/
-   cp -r claude-code-orchestration-template/teams/$TEAM/.claude /path/to/your/project/
-   ```
-
-   You need these in your project root:
-   - `CLAUDE.md` — orchestrator rules and project config
-   - `.claude/agents/` — agent definitions
-   - `.claude/docs/` — bootstrap protocol and project context template
-   - `.claude/skills/` — slash-command skills for the orchestrator
-   - `.claude/hooks/` — lifecycle hook scripts
-   - `.claude/rules/` — path-conditional rules
-
-   Optionally, copy `settings.template.json` to `.claude/settings.json` to enable hooks.
-
-3. **Open Claude Code** in your project and run:
-   ```
-   /bootstrap
-   ```
-
-4. **Answer the orchestrator's questions.** It will:
-   - Ask your preferred communication language (all file content is always written in English)
-   - Learn about your project/organization/context
-   - Discuss model assignment (Opus/Sonnet/Haiku) for each agent to optimize costs
-   - Fill all `[PROJECT-SPECIFIC]` sections in `CLAUDE.md` and all agent files
-   - Generate `.claude/docs/project-context.md` for fast session orientation
-
-5. **Start working.** The orchestrator automatically classifies tasks by tier, routes to the correct agent chain, and enforces quality gates.
+It's configuration, not code: one `CLAUDE.md` and a `.claude/` folder. Copy a team into your project, run `/bootstrap`, and start working. I built it for my own work and it's on its second version now. Sharing it in case it's useful, no expectations.
 
 ## How it works
 
-Every team follows the same core architecture:
+Running several agents on a codebase is the easy part. The judgment is the hard part: not wrapping a one-line fix in ceremony it doesn't need, and not letting a risky change through without the review it does. The template encodes that as rules that don't bend.
 
-**Tiered escalation** — Each task is classified by complexity (Tier 0-4). Simple changes get minimal review. Complex changes get the full agent chain. The depth of review matches the blast radius of the change.
+The tier follows the risk. New files push a task to at least tier 2, external I/O or a new security surface to tier 3, a new major component or anything security-critical to tier 4. When the orchestrator is unsure between two, it picks the higher one. docs always runs last.
 
-**Quality gates with loop-back** — Review agents issue explicit PASS or FAIL verdicts. FAIL pauses the chain and returns work for fixes. The chain does not advance until PASS is issued. A circuit breaker escalates to the user after 3 FAIL iterations on the same gate, so a stuck loop never runs up cost indefinitely.
+From there, a few things hold the chain together.
 
-**HANDOFF protocol** — Every agent writes a structured handoff with context for the next agent. The orchestrator follows the tier chain by default but may override routing when needed.
+Review agents return a verdict, PASS or FAIL. FAIL stops the chain and sends the work back with a numbered fix list. Three failures on the same gate trip a circuit breaker that escalates to you instead of looping — repeated failures mean the spec or the design is wrong, not the code.
 
-**Bootstrap customization** — Generic `[PROJECT-SPECIFIC]` placeholders are replaced through a structured conversation, not a config file. Agents become specialists in your specific context.
+Review agents are read-only. They carry `disallowedTools: [Edit, Write, Bash]`, so they can't touch the code they're reviewing, not even through a shell redirect. They report findings; they don't patch them.
 
-**Agent notes** — Agents accumulate knowledge across sessions through `.agentNotes/<agent>/notes.md`. Notes are subordinate to `CLAUDE.md` (never override rules) but provide working memory that makes agents more effective over time. Read-only agents cannot write files directly — they include a `## NOTES UPDATE` section in their output and the orchestrator persists it on their behalf.
+Agents load their own rules. The orchestrator passes only the task: what, why, scope, and the handoff from the previous agent. Never project conventions, never `CLAUDE.md`. Each agent reads those itself, every time. Stale context can't leak between steps, and the prompts stay lean.
 
-**Skills** — Every team includes slash-command skills (`/bootstrap`, `/tier-check`, `/chain-metrics`, `/commit`, `/push`, `/re-review`, `/deep-analysis`) that automate common orchestrator workflows.
+The knowledge hierarchy is strict. `CLAUDE.md` and agent instructions beat project docs, which beat the engineering skills, which beat an agent's private notes. Every conflict resolves the same way.
 
-**Engineering skills (software-development)** — The `software-development` team fuses the framework's *process* layer (who/when/with what control) with the *knowledge* layer of [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills): 23 vendored skills (TDD, incremental delivery, secure design, review, API design, shipping, …) under `.claude/agent-skills/`. The tier chain **is** the engineering lifecycle (DEFINE→PLAN→BUILD→VERIFY→REVIEW→SHIP), so each agent operates under the skills mapped to its phase as **mandatory workflow, not optional reference** — activation is structural (it follows from who's in the chain at which tier), never an explicit call. Bootstrap infers which skills are active for your project from its profile. The meta-skill's Core Operating Behaviors (surface assumptions, push back, verify) become an always-on baseline. See `teams/software-development/.claude/agent-skills/README.md`.
+Agents keep working notes in `.agentNotes/`, never committed. Read-only agents can't write their own, so they emit a notes section and the orchestrator persists it for them.
 
-**Role separation** — Agents have non-overlapping responsibilities. In `software-development` for example: `quality-gate` checks correctness and conventions, `hunter` does adversarial attack analysis, `defender` assesses system hardening. Each agent has an explicit "not in scope" boundary.
+Seven slash commands cover the routine work: `/bootstrap`, `/tier-check`, `/chain-metrics`, `/commit`, `/push`, `/re-review`, `/deep-analysis`.
 
-**Safety hooks** — Optional PreToolUse hooks block destructive git operations (force-push, reset --hard, etc.) before they execute.
+A safety hook blocks destructive git before it runs. The PreToolUse hook catches force pushes (including the short `-f` and refspec forms), `reset --hard`, `clean -f`, and `rm -rf`. Its block-and-pass list is checked in CI, alongside the agent definitions and the skills layer.
 
-**Read-only enforcement** — Review agents (those without Write/Edit in their tool list) also have `disallowedTools: [Edit, Write, Bash]` to prevent file modification through any means, including shell redirection.
+## Engineering skills (software-development team)
 
-## Team structure
+The software-development team adds a second layer on top of the chain. The chain already maps onto the engineering lifecycle — define, plan, build, verify, review, ship — so each agent runs under the practices that belong to its step. The developer works under test-driven and incremental-implementation doctrine; the quality gate under code-review and simplification; the security agents under hardening. Nothing "calls" a skill: being the developer in the build phase means operating under those practices. The tier sets how many phases run, so it also sets how much doctrine applies.
 
-Every team directory contains:
+These practices are 23 skill files vendored from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) (MIT), kept byte-for-byte identical to upstream so updates re-pull cleanly. Everything that binds them to this framework lives in one bridge file, `INTEGRATION.md`. Bootstrap works out which skills your project actually needs — a CLI tool doesn't need browser-testing — and drops the rest.
 
-```
-teams/<team-name>/
-  CLAUDE.md                          → Project rules + orchestrator instructions
-  .claude/
-    agents/
-      <agent-1>.md                   → Agent definition with role, constraints, protocols
-      <agent-2>.md
-      ...
-    docs/
-      bootstrap-protocol.md          → Bootstrap conversation protocol
-      project-context.md             → Session orientation template
-    skills/
-      <skill-name>/SKILL.md          → Slash-command skills for the orchestrator
-    hooks/
-      <hook-script>.sh               → Lifecycle hook scripts (PreToolUse, etc.)
-    rules/
-      <rule>.md                      → Path-conditional rules (lazy-loaded)
-    settings.template.json           → Recommended hooks/settings configuration
+The agents apply them with judgment, not by rote. On a small lint cleanup I watched the developer skip TDD on its own and say why, quoting the skill's own "when not to use". The doctrine doesn't bury small tasks in process. This layer is what improved my results the most.
+
+## Quick start
+
+```bash
+git clone https://github.com/Hub3r7/claude-code-orchestration-template.git
+
+TEAM=software-development   # or devops-sre / data-engineering / research-analysis
+cp claude-code-orchestration-template/teams/$TEAM/CLAUDE.md /path/to/your/project/
+cp -r claude-code-orchestration-template/teams/$TEAM/.claude /path/to/your/project/
+# optional: enable the safety hook
+cp .../teams/$TEAM/.claude/settings.template.json /path/to/your/project/.claude/settings.json
 ```
 
-## Choosing a team
+Then open Claude Code in your project and run `/bootstrap`. It asks about your project (stack, structure, conventions, what's sensitive), confirms what it understood, proposes a model for each agent and which skills to switch on, and then fills in every `[PROJECT-SPECIFIC]` section across the files. After that, tasks get classified and routed on their own.
 
-Pick the team closest to your primary workflow:
+It needs Claude Code. It's built on Claude Code's sub-agent system (`.claude/agents/*.md` and `CLAUDE.md`), so it won't work with other AI tools or IDEs. Each team is self-contained, with no dependencies on the others.
 
-- **Building software?** → `software-development`
-- **Managing infrastructure?** → `devops-sre`
-- **Building data pipelines?** → `data-engineering`
-- **Doing research?** → `research-analysis`
+## The teams
 
-Each team is **completely standalone**. You only need the files from one team — no shared dependencies, no cross-team imports.
+Four teams, same machinery — tiers, gates, handoffs, the hierarchy, bootstrap.
 
-## Re-bootstrap
+- **software-development** — the one I actually use, and the only one with the engineering-skills layer. Seven agents: architect, ui-designer, developer, quality-gate, hunter (offensive security), defender (defensive security), docs.
+- **devops-sre** — infrastructure and reliability work.
+- **data-engineering** — pipelines and data work.
+- **research-analysis** — non-code research, with a researcher, critic, and visualizer in place of developers.
 
-If your project evolves significantly, run `/bootstrap` again and the orchestrator will update the project-specific sections while preserving what still applies.
+To build your own, copy a team folder, rename the agents and adjust their roles, edit the tier table for your workflow, and update the bootstrap questions. Keep the core protocols — handoff, PASS/FAIL, the hierarchy, agent notes — and it holds together. None of this is specific to software.
 
-## Building your own team
+## What to expect
 
-Want a team for a domain not listed here? Use any existing team as a template:
+The software-development team is where the work went, and the part I trust. The other three share the same protocols but I've run them far less — expect to refine their agent instructions as you go. It's a personal project in active use, so it has rough edges. That's fine: it's a second version, not a finished product. Issues and pull requests welcome.
 
-1. Copy a team directory
-2. Rename agents and adjust roles
-3. Adapt the tier system for your workflow
-4. Update the bootstrap protocol with relevant discovery questions
-5. Keep the core protocols: HANDOFF, PASS/FAIL, knowledge hierarchy, agent notes
+It spends tokens. Multi-agent review costs more than a single pass, and the skills layer adds more again. That's the trade for the depth — worth knowing before you point it at everything.
 
-The framework is domain-agnostic — the protocols work for any structured workflow where multiple perspectives add value.
+## Credit and license
 
-## Origin
+The engineering skills are vendored from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) by Addy Osmani (MIT). Credit to that project for the doctrine. Everything else is MIT as well; see [LICENSE](LICENSE).
 
-This started as a personal setup for a project. The agent roles, tier boundaries, and loop-back rules were shaped by what actually went wrong during development — not planned upfront. It worked well enough that I extracted it into a standalone framework, then generalized it to non-software domains.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
-
-## Contact
-
-Questions, feedback, or want to contribute? Reach out at **hub3r7@pm.me**.
+Questions or feedback: hub3r7@pm.me
