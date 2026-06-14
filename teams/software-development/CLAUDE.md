@@ -191,6 +191,18 @@ per-project activation rules live in **`.claude/agent-skills/README.md`** — th
 source of truth for the mapping. Agents self-load their mapped skills (see each agent's
 `## Before any task`).
 
+**Orchestrator DEFINE-phase trigger (mandatory — symmetric with the agents).** Dev-cycle
+agents load their phase skills via their own `## Before any task`; the orchestrator must do
+the same for the DEFINE phase, otherwise those skills stay inert. When an incoming request
+is **underspecified** (no clear *for whom / why now*, vague scope) or the user asks to
+refine or stress-test an idea, **read and follow** `.claude/agent-skills/interview-me/SKILL.md`
+(one question at a time until ~95% confidence) or `.claude/agent-skills/idea-refine/SKILL.md`
+**before** classifying the tier or starting the chain. Consult `context-engineering` when
+setting up a new session or when agent output quality degrades. The distilled Operating
+Behaviors (#1 Surface Assumptions) are the always-on baseline; these skills are the **full
+protocol** when the ask warrants it — do not stop at the baseline when the request is
+genuinely vague.
+
 **Per-project activation:** the table above is the full catalog. Bootstrap infers the
 *active* set from the project profile (UI → frontend/browser skills; web → performance/
 observability; CLI → neither) and records it here and in `project-context.md`. Inactive

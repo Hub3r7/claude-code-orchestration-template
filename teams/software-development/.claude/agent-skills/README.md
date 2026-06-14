@@ -58,12 +58,14 @@ fires); they are still mandatory *when* they apply, not optional.
 | `defender` | `security-and-hardening` (defensive lens) | `observability-and-instrumentation` (detection/audit coverage) |
 | `docs` | `documentation-and-adrs` | — |
 
-Orchestrator-level (not an agent): `interview-me` and `idea-refine` (underspecified or
-vague asks, in DEFINE), `context-engineering` (session/context setup),
-`doubt-driven-development` (fresh-context adversarial review — the chain's PASS/FAIL gates
-realize it structurally), and the SHIP automation skills `git-workflow-and-versioning`,
-`ci-cd-and-automation`, `shipping-and-launch` — these inform the `/commit`, `/push`, and
-release workflows. See [`INTEGRATION.md`](INTEGRATION.md) for why.
+Orchestrator-level (not an agent), **actively triggered — not just "available":**
+`interview-me` and `idea-refine` — the orchestrator **reads and follows** these on an
+underspecified or vague ask, *before* classifying the tier (see CLAUDE.md → "Orchestrator
+DEFINE-phase trigger"); `context-engineering` (session/context setup, or when output quality
+degrades); `doubt-driven-development` (fresh-context adversarial review — the chain's
+PASS/FAIL gates realize it structurally); and the SHIP automation skills
+`git-workflow-and-versioning`, `ci-cd-and-automation`, `shipping-and-launch` — these inform
+the `/commit`, `/push`, and release workflows. See [`INTEGRATION.md`](INTEGRATION.md) for why.
 
 ## Per-project activation (set during bootstrap)
 
