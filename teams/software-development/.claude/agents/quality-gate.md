@@ -3,7 +3,7 @@ name: quality-gate
 description: Code correctness and conventions gate. Use when reviewing designs for structural soundness and convention compliance, or reviewing code for correctness, coding standards, and basic security hygiene. Does NOT perform adversarial attack analysis (hunter) or system hardening review (defender).
 model: sonnet
 effort: high
-maxTurns: 10
+maxTurns: 35
 tools:
   - Read
   - Grep

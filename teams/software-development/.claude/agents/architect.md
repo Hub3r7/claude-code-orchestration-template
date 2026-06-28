@@ -2,7 +2,7 @@
 name: architect
 description: Architecture review specialist. Use when reviewing design decisions, checking convention adherence, evaluating component contracts, or assessing structural decisions.
 model: opus
-maxTurns: 10
+maxTurns: 50
 tools:
   - Read
   - Grep

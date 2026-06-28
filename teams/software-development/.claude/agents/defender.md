@@ -3,7 +3,7 @@ name: defender
 description: Defensive security specialist. Use for system hardening assessment, forensic analysis, detection rule development, or defensive posture review after offensive findings.
 model: sonnet
 effort: high
-maxTurns: 10
+maxTurns: 35
 tools:
   - Read
   - Grep

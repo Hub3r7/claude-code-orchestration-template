@@ -2,7 +2,7 @@
 name: security
 description: Data security specialist. Use for PII detection, access control review, GDPR/compliance verification, data masking assessment, or data governance review.
 model: sonnet
-maxTurns: 10
+maxTurns: 35
 effort: high
 tools:
   - Read

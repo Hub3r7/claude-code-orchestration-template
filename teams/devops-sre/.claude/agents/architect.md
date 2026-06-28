@@ -2,7 +2,7 @@
 name: architect
 description: Infrastructure design specialist. Use when designing IaC topology, service architecture, deployment strategies, or evaluating infrastructure decisions.
 model: opus
-maxTurns: 10
+maxTurns: 50
 tools:
   - Read
   - Grep

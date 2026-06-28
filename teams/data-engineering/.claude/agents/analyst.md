@@ -2,7 +2,7 @@
 name: analyst
 description: Data analysis specialist. Invoked ON USER REQUEST ONLY — not automatically in the chain. Use when the user explicitly asks for exploratory analysis, SQL review, or business logic validation.
 model: sonnet
-maxTurns: 10
+maxTurns: 50
 tools:
   - Read
   - Grep

@@ -3,7 +3,7 @@ name: ui-designer
 description: UI/UX design specialist. Use when designing user interfaces, reviewing component layouts, ensuring visual consistency, evaluating accessibility, or planning responsive design. Invoked on Tier 2+ tasks that involve UI changes.
 model: sonnet
 effort: high
-maxTurns: 10
+maxTurns: 80
 tools:
   - Read
   - Grep

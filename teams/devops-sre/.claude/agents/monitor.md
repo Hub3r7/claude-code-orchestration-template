@@ -2,7 +2,7 @@
 name: monitor
 description: Observability and monitoring specialist. Use when defining SLOs/SLIs, creating alerting rules, designing dashboards, reviewing monitoring coverage, or assessing observability gaps.
 model: sonnet
-maxTurns: 10
+maxTurns: 35
 effort: high
 tools:
   - Read

@@ -2,7 +2,7 @@
 name: quality
 description: Data quality and validation specialist. Use when reviewing pipeline designs for correctness, validating data quality rules, checking schema contracts, reviewing transformation logic, or verifying test coverage.
 model: sonnet
-maxTurns: 10
+maxTurns: 35
 effort: high
 tools:
   - Read

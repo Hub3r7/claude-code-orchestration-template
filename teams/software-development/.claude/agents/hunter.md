@@ -3,7 +3,7 @@ name: hunter
 description: Offensive security specialist. Use for attack surface analysis of project code, threat modeling, or authorized penetration testing. Default mode is read-only code review. Active testing only on explicit user request with stated target, scope, and authorization basis.
 model: sonnet
 effort: high
-maxTurns: 10
+maxTurns: 35
 tools:
   - Read
   - Grep

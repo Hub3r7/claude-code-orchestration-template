@@ -2,7 +2,7 @@
 name: analyst
 description: Data analysis and synthesis specialist. Use for pattern recognition, statistical analysis, cross-source synthesis, or insight extraction.
 model: opus
-maxTurns: 10
+maxTurns: 50
 effort: high
 tools:
   - Read

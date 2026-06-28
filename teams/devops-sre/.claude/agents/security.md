@@ -2,7 +2,7 @@
 name: security
 description: Infrastructure security specialist. Use for hardening assessment, secrets management review, compliance verification, IAM review, or network security analysis.
 model: sonnet
-maxTurns: 10
+maxTurns: 35
 effort: high
 tools:
   - Read

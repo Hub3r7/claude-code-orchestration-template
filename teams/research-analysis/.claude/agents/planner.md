@@ -2,7 +2,7 @@
 name: planner
 description: Research planning specialist. Use for research question formulation, methodology design, scope definition, or literature search strategy.
 model: opus
-maxTurns: 10
+maxTurns: 50
 tools:
   - Read
   - Grep

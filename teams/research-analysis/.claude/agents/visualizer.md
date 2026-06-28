@@ -2,7 +2,7 @@
 name: visualizer
 description: Data visualization specialist. Use for chart design, diagram creation, infographic planning, or presentation material development. Tier 4 only.
 model: sonnet
-maxTurns: 10
+maxTurns: 25
 tools:
   - Read
   - Write

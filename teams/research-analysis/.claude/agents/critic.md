@@ -2,7 +2,7 @@
 name: critic
 description: Research quality specialist. Use for methodology review, peer review, bias detection, logical consistency check, or evidence quality assessment.
 model: sonnet
-maxTurns: 10
+maxTurns: 35
 effort: high
 tools:
   - Read

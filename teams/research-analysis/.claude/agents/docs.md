@@ -2,7 +2,7 @@
 name: docs
 description: Research documentation specialist. Use for writing final reports, executive summaries, citations, bibliography, or research documentation.
 model: sonnet
-maxTurns: 10
+maxTurns: 25
 tools:
   - Read
   - Write

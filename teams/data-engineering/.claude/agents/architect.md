@@ -2,7 +2,7 @@
 name: architect
 description: Pipeline and schema design specialist. Use when designing data models, planning pipeline architecture, selecting technologies, reviewing schema decisions, or assessing data flow patterns.
 model: opus
-maxTurns: 10
+maxTurns: 50
 tools:
   - Read
   - Grep

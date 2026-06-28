@@ -3,7 +3,7 @@ name: reviewer
 description: IaC code review and best practices specialist. Use when reviewing infrastructure designs for correctness, reviewing IaC code for best practices, or validating deployment safety.
 model: sonnet
 effort: high
-maxTurns: 10
+maxTurns: 35
 tools:
   - Read
   - Grep

@@ -2,7 +2,7 @@
 name: docs
 description: Documentation specialist. Use when writing runbooks, architecture docs, operational procedures, knowledge base articles, or any infrastructure documentation.
 model: sonnet
-maxTurns: 10
+maxTurns: 25
 tools:
   - Read
   - Write
