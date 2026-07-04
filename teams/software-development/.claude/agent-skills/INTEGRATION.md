@@ -31,10 +31,10 @@ bolted on beside it.
    the skill is the *depth behind it*, not a competing rule. Specific overlaps are listed
    below.
 
-5. **`references/` are deep-dives.** The five `references/*.md` checklists (security,
-   performance, accessibility, testing, orchestration) are exhaustive supplements. Consult
-   them when a skill points there and the work warrants the depth — they are not required
-   reading for every task.
+5. **`references/` are deep-dives.** The seven `references/*.md` checklists (security,
+   performance, accessibility, testing, orchestration, definition-of-done, observability)
+   are exhaustive supplements. Consult them when a skill points there and the work warrants
+   the depth — they are not required reading for every task.
 
 ## Per-skill bridges (only where there is a specific binding)
 

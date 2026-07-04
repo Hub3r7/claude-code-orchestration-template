@@ -16,12 +16,13 @@ phases run, and therefore how much doctrine applies.
 ## Provenance
 
 - **Source:** [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills)
-- **Upstream commit:** `d187883b7d761265309cdcc0f202cc76b4b3fb06` (2026-06-11)
+- **Upstream commit:** `8c6530305396f341b5da7201cf1f7e390fdb863f` (2026-07-02)
 - **License:** MIT © 2025 Addy Osmani — see [`LICENSE.upstream`](LICENSE.upstream)
 - **Vendored:** 23 of 24 skills (all except the `using-agent-skills` meta-skill, whose
   discovery logic and Core Operating Behaviors are distilled into the team `CLAUDE.md`),
-  plus all 5 upstream `references/` checklists (security, performance, accessibility,
-  testing, orchestration) so every "See Also → `references/…`" link resolves.
+  plus all 7 upstream `references/` checklists (security, performance, accessibility,
+  testing, orchestration, definition-of-done, observability) so every
+  "See Also → `references/…`" link resolves.
 
 How these skills bind to our framework — gates, canon, stack, and per-skill notes — is in
 [`INTEGRATION.md`](INTEGRATION.md). To refresh, re-fetch the same paths at a newer commit
