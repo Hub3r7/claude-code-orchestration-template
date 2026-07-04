@@ -77,6 +77,7 @@ Claude Code is the main orchestrator of all agent chains. The user is the produc
 **Agent notes persistence:** Read-only agents (those without Write tool) cannot persist their own notes. When an agent includes a `## NOTES UPDATE` section in its output, the orchestrator writes the content to `.agentNotes/<agent>/notes.md`. This is a mechanical task — do not modify the agent's notes content.
 
 **During chain execution:**
+- At the start of a new chain, reset the circuit breaker: delete `.agentNotes/chain-state.json` if it exists — stale FAIL counters from a previous chain would escalate too early
 - State which agent is being invoked and why before each invocation
 - Surface BLOCKED sections immediately — never proceed past them silently
 - After every agent completes, check output for `AGENT UPDATE RECOMMENDED` — if present, surface the recommendation to the user immediately before proceeding with the chain
@@ -137,6 +138,8 @@ Each position in the chain is an engineering-lifecycle phase (DEFINE→PLAN→BU
 | 4 — Full | New major component, security-critical change, core/shared code change | architect → quality-gate → developer → quality-gate → hunter → defender → docs |
 
 **Loop-back protocol:** Every review agent issues **PASS** or **FAIL**. FAIL pauses the chain and returns to the developer with a numbered remediation list. **Circuit breaker:** after 3 FAIL iterations on the same gate, the chain pauses and the orchestrator escalates to the user instead of looping further — repeated FAILs signal unclear requirements or a design flaw, not just an implementation slip.
+
+**Mechanical enforcement:** with the hooks from `settings.template.json` installed, both rules are enforced by code, not prose. `gate-verdict-check.sh` (SubagentStop) refuses to let a review agent finish without an explicit verdict or a `## BLOCKED` section, and records FAIL counts per gate in `.agentNotes/chain-state.json`. `chain-circuit-breaker.sh` (PreToolUse on agent spawning) blocks the next invocation of a gate that has issued 3 FAILs — the loop physically cannot continue until the user decides and the state file is reset (`rm .agentNotes/chain-state.json`). Stale counters can only escalate too early, never let a loop run too long.
 
 **Chain routing:** Agents write a HANDOFF section with full context for the next agent. The orchestrator follows the tier chain by default but may override. Tier 3: hunter (external I/O, input parsers, network) vs defender (data persistence, audit trails, file integrity).
 

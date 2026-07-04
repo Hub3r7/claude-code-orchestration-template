@@ -38,6 +38,8 @@ Six slash commands cover the routine work: `/bootstrap`, `/tier-check`, `/commit
 
 A safety hook blocks destructive git before it runs. The PreToolUse hook catches force pushes (including the short `-f` and refspec forms), `reset --hard`, `clean -f`, and `rm -rf`. Its block-and-pass list is checked in CI, alongside the agent definitions and the skills layer.
 
+In the software-development team, two more hooks turn the review protocol from instructions into mechanics. A SubagentStop hook refuses to let a review agent finish without an explicit PASS/FAIL verdict (or a declared BLOCKED state), and counts FAILs per gate. A PreToolUse hook on agent spawning enforces the circuit breaker: after three FAILs on the same gate, the next re-review is blocked outright — the orchestrator has to escalate to you, it can't quietly keep looping. Both are covered by the same CI test suite as the git hook.
+
 ## Engineering skills (software-development team)
 
 The software-development team adds a second layer on top of the chain. The chain already maps onto the engineering lifecycle — define, plan, build, verify, review, ship — so each agent runs under the practices that belong to its step. The developer works under test-driven and incremental-implementation doctrine; the quality gate under code-review and simplification; the security agents under hardening. Nothing "calls" a skill: being the developer in the build phase means operating under those practices. The tier sets how many phases run, so it also sets how much doctrine applies.

@@ -9,6 +9,26 @@
             "command": ".claude/hooks/block-destructive-git.sh"
           }
         ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/chain-circuit-breaker.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "quality-gate|hunter|defender",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/gate-verdict-check.sh"
+          }
+        ]
       }
     ]
   }
