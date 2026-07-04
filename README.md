@@ -68,7 +68,7 @@ It needs Claude Code. It's built on Claude Code's sub-agent system (`.claude/age
 
 Four teams, same machinery — tiers, gates, handoffs, the hierarchy, bootstrap.
 
-- **software-development** — the one I actually use, and the only one with the engineering-skills layer. Seven agents: architect, ui-designer, developer, quality-gate, hunter (offensive security), defender (defensive security), docs.
+- **software-development** — the one I actually use, and the only one with the engineering-skills layer. Seven chain agents: architect, ui-designer, developer, quality-gate, hunter (offensive security), defender (defensive security), docs. Plus three on-call consultants — critic (fresh-eyes challenge), incident (production-failure perspective), optimizer (performance) — read-only advisors any chain can pull in for a second opinion; they inform, they don't gate.
 - **devops-sre** — infrastructure and reliability work.
 - **data-engineering** — pipelines and data work.
 - **research-analysis** — non-code research, with a researcher, critic, and visualizer in place of developers.

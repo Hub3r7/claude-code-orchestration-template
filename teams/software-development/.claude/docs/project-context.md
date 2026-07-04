@@ -25,8 +25,11 @@
 | `hunter` | Attack surface / input analysis | Tier 3 (external I/O) and Tier 4 |
 | `defender` | Defensive / artifact analysis | Tier 3 (data/artifacts) and Tier 4 |
 | `docs` | Documentation | Always last in chain |
+| `critic` | Consultant — fresh-eyes challenge of designs/reasoning | On demand, any tier |
+| `incident` | Consultant — failure modes, rollback, live incidents | On demand, any tier |
+| `optimizer` | Consultant — performance deep-dive | On demand, any tier |
 
-Review chains Tier 0-4. Architect enters from Tier 2. quality-gate mandatory from Tier 1. Tier 3 adds hunter OR defender depending on task type; Tier 4 adds both. Every review agent issues PASS or FAIL — FAIL loops back to developer, chain paused until PASS. Full table: `CLAUDE.md` → Dev Cycle.
+Review chains Tier 0-4. Architect enters from Tier 2. quality-gate mandatory from Tier 1. Tier 3 adds hunter OR defender depending on task type; Tier 4 adds both. Every review agent issues PASS or FAIL — FAIL loops back to developer, chain paused until PASS. Consultants are read-only advisors outside the tier table and never issue verdicts. Full table: `CLAUDE.md` → Dev Cycle.
 
 ## Skills
 

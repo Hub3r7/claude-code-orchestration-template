@@ -161,6 +161,22 @@ Each position in the chain is an engineering-lifecycle phase (DEFINE→PLAN→BU
 | `defender` | Defensive security / hardening assessment | Tier 3 (data/artifacts) and Tier 4 |
 | `docs` | Documentation | Always last in chain |
 
+## Consultant Pool (on-demand, outside the tier table)
+
+Three read-only consultants provide a different lens when the work needs one. They are **not chain gates**: they issue findings and recommendations, never PASS/FAIL verdicts, and no tier requires them.
+
+| Consultant | Lens | Typical trigger |
+|-----------|------|-----------------|
+| `critic` | Fresh-eyes challenge to designs, plans, assumptions, conclusions | Orchestrator doubts a design; user wants a second opinion; architect requests it before an expensive build |
+| `incident` | Production failure modes, blast radius, rollback; live-incident triage, RCA, postmortems | Pre-ship check on a risky change; something already broke |
+| `optimizer` | Performance and efficiency deep-dive | Performance IS the task, or a change deserves a dedicated pass beyond quality-gate's conditional perf review |
+
+**Invocation:** the orchestrator spawns a consultant on its own judgment, on a user request, or on another agent's HANDOFF recommendation. A consultant can join at any point in any tier's chain without changing the tier.
+
+**Findings flow back** to the requesting agent or the orchestrator. A consultant's Critical finding is a signal to upgrade the tier, re-run a gate, or return to the authoring agent — the orchestrator decides and surfaces it to the user. Consultants persist notes via `## NOTES UPDATE` like other read-only agents.
+
+This pool is also how the orchestrator realizes the `doubt-driven-development` skill (see `.claude/agent-skills/INTEGRATION.md`): `critic` is the fresh-context reviewer that skill calls for.
+
 ## Engineering Skills — the lifecycle inside the chain
 
 The tier chain **is** the engineering lifecycle. Each position in the chain is a

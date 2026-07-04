@@ -57,13 +57,17 @@ fires); they are still mandatory *when* they apply, not optional.
 | `hunter` | `security-and-hardening` (offensive lens) | — |
 | `defender` | `security-and-hardening` (defensive lens) | `observability-and-instrumentation` (detection/audit coverage) |
 | `docs` | `documentation-and-adrs` | — |
+| `critic` (consultant) | `doubt-driven-development` (it is the fresh-context reviewer that skill calls for) | — |
+| `incident` (consultant) | `debugging-and-error-recovery` (investigation discipline) | `observability-and-instrumentation` (detectability review) |
+| `optimizer` (consultant) | `performance-optimization` | — |
 
 Orchestrator-level (not an agent), **actively triggered — not just "available":**
 `interview-me` and `idea-refine` — the orchestrator **reads and follows** these on an
 underspecified or vague ask, *before* classifying the tier (see CLAUDE.md → "Orchestrator
 DEFINE-phase trigger"); `context-engineering` (session/context setup, or when output quality
 degrades); `doubt-driven-development` (fresh-context adversarial review — the chain's
-PASS/FAIL gates realize it structurally); and the SHIP automation skills
+PASS/FAIL gates realize it structurally, and the `critic` consultant is its on-demand
+form); and the SHIP automation skills
 `git-workflow-and-versioning`, `ci-cd-and-automation`, `shipping-and-launch` — these inform
 the `/commit`, `/push`, and release workflows. See [`INTEGRATION.md`](INTEGRATION.md) for why.
 

@@ -105,6 +105,9 @@ quality-gate    Sonnet    (structured review with clear criteria)
 hunter          Sonnet    (security analysis with defined patterns)
 defender        Sonnet    (defensive review with defined patterns)
 docs            Sonnet    (documentation with clear templates)
+critic          Sonnet    (adversarial reasoning review — consultant)
+incident        Sonnet    (failure-mode analysis with clear checklists — consultant)
+optimizer       Sonnet    (perf analysis with defined patterns — consultant)
 ```
 
 **Present this table to the user and ask:**
