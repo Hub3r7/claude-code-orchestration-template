@@ -46,7 +46,7 @@ The software-development team adds a second layer on top of the chain. The chain
 
 These practices are 23 skill files vendored from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) (MIT), kept byte-for-byte identical to upstream so updates re-pull cleanly. Everything that binds them to this framework lives in one bridge file, `INTEGRATION.md`. Bootstrap works out which skills your project actually needs — a CLI tool doesn't need browser-testing — and drops the rest.
 
-The agents apply them with judgment, not by rote. On a small lint cleanup I watched the developer skip TDD on its own and say why, quoting the skill's own "when not to use". The doctrine doesn't bury small tasks in process. This layer is what improved my results the most.
+The agents apply them with judgment, not by rote. On a small lint cleanup I watched the developer skip TDD on its own and say why, quoting the skill's own "when not to use". The doctrine doesn't bury small tasks in process.
 
 ## Quick start
 
