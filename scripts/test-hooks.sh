@@ -173,6 +173,69 @@ run_verdict defender "$t_fail" false >/dev/null
 check 2 "$(run_breaker Agent defender)" "three recorded FAILs trip the breaker"
 check 0 "$(run_breaker Agent quality-gate)" "other gates unaffected"
 
+# Outcome log: every verdict above was appended to chain-log.jsonl.
+LOG="$WORK/.agentNotes/chain-log.jsonl"
+check 7 "$(wc -l < "$LOG" | tr -d ' ')" "chain log has one line per verdict"
+check FAIL "$(tail -1 "$LOG" | jq -r .verdict)" "chain log records the last verdict"
+check defender "$(tail -1 "$LOG" | jq -r .agent)" "chain log records the agent"
+
+# ---------------------------------------------------------------------------
+# notes-persist.sh (PostToolUse on Agent/Task)
+# ---------------------------------------------------------------------------
+NOTES_HOOK="$HOOKS_DIR/notes-persist.sh"
+echo "Hook: $NOTES_HOOK"
+
+run_notes_str() {
+  # $1 = tool_name, $2 = subagent_type, $3 = tool_response as plain string
+  jq -cn --arg n "$1" --arg s "$2" --arg r "$3" --arg c "$WORK" \
+    '{tool_name:$n,tool_input:{subagent_type:$s},cwd:$c,tool_response:$r}' \
+    | bash "$NOTES_HOOK" >/dev/null 2>&1
+  echo $?
+}
+
+run_notes_obj() {
+  # $1 = subagent_type, $2 = text inside a content array
+  jq -cn --arg s "$1" --arg t "$2" --arg c "$WORK" \
+    '{tool_name:"Agent",tool_input:{subagent_type:$s},cwd:$c,tool_response:{content:[{type:"text",text:$t}]}}' \
+    | bash "$NOTES_HOOK" >/dev/null 2>&1
+  echo $?
+}
+
+with_notes="## RESULT
+done
+
+## NOTES UPDATE
+- open finding: parser edge case
+- reviewed: src/api.ts
+
+## HANDOFF
+- To: docs"
+
+check 0 "$(run_notes_str Agent critic "$with_notes")" "notes section persisted (string response)"
+if ! grep -q "parser edge case" "$WORK/.agentNotes/critic/notes.md" 2>/dev/null; then
+  echo "  FAIL: critic notes not written from string response"; fail=1
+fi
+if grep -q "HANDOFF\|To: docs" "$WORK/.agentNotes/critic/notes.md" 2>/dev/null; then
+  echo "  FAIL: notes extraction leaked past the section boundary"; fail=1
+fi
+
+check 0 "$(run_notes_obj optimizer "$with_notes")" "notes section persisted (content-array response)"
+if ! grep -q "parser edge case" "$WORK/.agentNotes/optimizer/notes.md" 2>/dev/null; then
+  echo "  FAIL: optimizer notes not written from content-array response"; fail=1
+fi
+
+check 0 "$(run_notes_str Agent hunter "just a normal answer, no section")" "no section → no write"
+if [ -f "$WORK/.agentNotes/hunter/notes.md" ]; then
+  echo "  FAIL: notes file created despite missing NOTES UPDATE section"; fail=1
+fi
+
+check 0 "$(run_notes_str Agent "../evil" "$with_notes")" "path-unsafe agent name ignored"
+if [ -e "$WORK/.agentNotes/../evil" ] || [ -e "$WORK/evil" ]; then
+  echo "  FAIL: unsafe agent name reached the filesystem"; fail=1
+fi
+
+check 0 "$(run_notes_str Bash critic "$with_notes")" "non-Agent tool ignored"
+
 if [ "$fail" -eq 0 ]; then
   echo "Hook tests OK."
 else

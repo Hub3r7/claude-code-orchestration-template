@@ -74,14 +74,25 @@ Claude Code is the main orchestrator of all agent chains. The user is the produc
 - Do NOT re-read files already in context. Use existing knowledge from earlier in the session.
 - Keep agent prompts minimal: task description + HANDOFF context only.
 
-**Agent notes persistence:** Read-only agents (those without Write tool) cannot persist their own notes. When an agent includes a `## NOTES UPDATE` section in its output, the orchestrator writes the content to `.agentNotes/<agent>/notes.md`. This is a mechanical task — do not modify the agent's notes content.
+**Agent notes persistence:** Read-only agents (those without Write tool) cannot persist their own notes. When an agent includes a `## NOTES UPDATE` section in its output, the content must land in `.agentNotes/<agent>/notes.md`. With the `settings.template.json` hooks installed, `notes-persist.sh` (PostToolUse) does this automatically; the orchestrator does it manually only when the hooks are absent. Never modify the agent's notes content.
+
+**Chain state manifest:** `.agentNotes/chain-state.json` is the chain's durable state — it survives context compaction. At chain start (Tier 1+) the orchestrator writes a fresh manifest, replacing the previous chain's file:
+
+```json
+{"task": "add rate limiting to API client", "tier": 3,
+ "chain": ["architect", "quality-gate", "developer", "quality-gate", "hunter", "docs"],
+ "done": [], "fail_counts": {}}
+```
+
+Ownership is split: the orchestrator owns `task`, `tier`, `chain`, and `done` (append each agent after it completes); the hooks own `fail_counts`, and they append every gate verdict to `.agentNotes/chain-log.jsonl` — the durable outcome history (review it periodically: how many FAILs were real catches tells you whether the tiers are calibrated). **After a compaction, or when resuming a session mid-work, read the manifest first** — it restores chain position mechanically instead of reconstructing it from conversation fragments.
 
 **During chain execution:**
-- At the start of a new chain, reset the circuit breaker: delete `.agentNotes/chain-state.json` if it exists — stale FAIL counters from a previous chain would escalate too early
+- At the start of a new chain, write a fresh chain manifest to `.agentNotes/chain-state.json` (see **Chain state manifest** above) — this also resets the circuit breaker; stale FAIL counters from a previous chain would escalate too early
+- After each agent completes, append its name to the manifest's `done` list
 - State which agent is being invoked and why before each invocation
 - Surface BLOCKED sections immediately — never proceed past them silently
 - After every agent completes, check output for `AGENT UPDATE RECOMMENDED` — if present, surface the recommendation to the user immediately before proceeding with the chain
-- After every agent completes, check output for `## NOTES UPDATE` — if present, write the content to the agent's notes file
+- After every agent completes, check output for `## NOTES UPDATE` — automatic with hooks installed; write it manually only when they are not
 - Verify acceptance criteria from each agent before invoking the next
 - Summarise results after the full chain completes (for real token/cost data use `/usage` or OTEL telemetry — see `.claude/docs/telemetry.md`)
 
@@ -97,7 +108,7 @@ Claude Code is the main orchestrator of all agent chains. The user is the produc
 
 **Exception — bootstrap:** The orchestrator directly edits `CLAUDE.md`, agent files, and `project-context.md` during bootstrap. This is configuration, not project code — no delegation needed.
 
-**New session orientation:** Read `.claude/docs/project-context.md` first for a quick project overview, then this file for full rules. If `project-context.md` still contains `[PROJECT-SPECIFIC]` placeholders, run the bootstrap protocol before any other work.
+**New session orientation:** Read `.claude/docs/project-context.md` first for a quick project overview, then this file for full rules. If `.agentNotes/chain-state.json` exists with an unfinished chain (`done` shorter than `chain`), a chain is in flight — resume from it. If `project-context.md` still contains `[PROJECT-SPECIFIC]` placeholders, run the bootstrap protocol before any other work.
 
 ## Skills
 
@@ -145,7 +156,7 @@ Each position in the chain is an engineering-lifecycle phase (DEFINE→PLAN→BU
 
 **UI chain insertion:** When a Tier 2-4 task involves UI changes, insert ui-designer after architect and before quality-gate (e.g., architect → ui-designer → quality-gate → developer → ...).
 
-**Tier upgrade rules:** New major component or security-sensitive operations (auth, crypto) → Tier 4. External network requests, persistent artifacts, or shared/core code changes → at least Tier 3. New files → at least Tier 2. When in doubt, upgrade.
+**Tier upgrade rules:** New major component or security-sensitive operations (auth, crypto) → Tier 4. External network requests, persistent artifacts, or shared/core code changes → at least Tier 3. New files → at least Tier 2. When in doubt, upgrade. **Calibration:** when the tier is not obvious, consult `.claude/docs/tier-casebook.md` — worked examples beat rules on borderline cases. Whenever the user corrects a tier decision, append that case to the casebook.
 
 **Worktree isolation:** For Tier 3-4 changes with high blast radius, the orchestrator MAY invoke developer with `isolation: "worktree"` to work on an isolated git copy. The worktree is auto-cleaned if no changes are made.
 

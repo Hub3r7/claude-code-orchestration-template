@@ -65,4 +65,4 @@ _Inactive (vendored on disk but unused for this project):_ <!-- e.g. frontend-ui
 
 ## If Context Was Lost
 
-New session or after compaction: read this file first, then `CLAUDE.md`. The two together restore full orientation without re-reading source files. Agent instructions are in `.claude/agents/`.
+New session or after compaction: read this file first, then `CLAUDE.md`. If `.agentNotes/chain-state.json` exists with an unfinished chain, a chain is in flight — resume position from it. The two together restore full orientation without re-reading source files. Agent instructions are in `.claude/agents/`.

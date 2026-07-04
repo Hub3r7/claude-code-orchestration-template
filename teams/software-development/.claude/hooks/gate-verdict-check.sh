@@ -61,4 +61,9 @@ else
   jq --arg a "$AGENT" '.fail_counts[$a] = 0' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"
 fi
 
+# Outcome log: append-only verdict history. This is the evidence side of the
+# framework — review it periodically to see whether gates catch real issues.
+printf '{"ts":"%s","agent":"%s","verdict":"%s"}\n' \
+  "$(date -u +%FT%TZ)" "$AGENT" "$VERDICT" >> "$STATE_DIR/chain-log.jsonl"
+
 exit 0

@@ -20,6 +20,17 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/notes-persist.sh"
+          }
+        ]
+      }
+    ],
     "SubagentStop": [
       {
         "matcher": "quality-gate|hunter|defender",
