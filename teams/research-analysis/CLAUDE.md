@@ -70,7 +70,7 @@ Claude Code is the main orchestrator of all agent chains. The user is the princi
 - After every agent completes, check output for `AGENT UPDATE RECOMMENDED` — if present, surface the recommendation to the user immediately before proceeding with the chain
 - After every agent completes, check output for `## NOTES UPDATE` — if present, write the content to the agent's notes file
 - Verify acceptance criteria from each agent before invoking the next
-- Summarise results after the full chain completes, including a metrics table (template: `.claude/docs/chain-metrics.md`)
+- Summarise results after the full chain completes (for real token/cost data use `/usage` or OTEL telemetry — see `.claude/docs/telemetry.md`)
 
 **What Claude Code NEVER does:**
 - Does NOT design research methodology — that is the planner's role
@@ -92,7 +92,6 @@ Claude Code is the main orchestrator of all agent chains. The user is the princi
 |-------|---------|
 | `/bootstrap` | Run the bootstrap protocol to customize all `[PROJECT-SPECIFIC]` sections |
 | `/tier-check` | Analyze a task and recommend the appropriate tier (0-4) with full chain |
-| `/chain-metrics` | Display token/cost/duration metrics after a completed agent chain |
 | `/commit` | Create a conventional commit from current changes |
 | `/push` | Push current branch to remote with safety checks |
 | `/re-review` | Re-run review chain on existing code (review only, no changes) |

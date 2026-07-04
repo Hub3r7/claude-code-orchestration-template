@@ -34,7 +34,7 @@ The knowledge hierarchy is strict. `CLAUDE.md` and agent instructions beat proje
 
 Agents keep working notes in `.agentNotes/`, never committed. Read-only agents can't write their own, so they emit a notes section and the orchestrator persists it for them.
 
-Seven slash commands cover the routine work: `/bootstrap`, `/tier-check`, `/chain-metrics`, `/commit`, `/push`, `/re-review`, `/deep-analysis`.
+Six slash commands cover the routine work: `/bootstrap`, `/tier-check`, `/commit`, `/push`, `/re-review`, `/deep-analysis`. For token and cost numbers use Claude Code's own `/usage`, or the OTEL telemetry setup in `.claude/docs/telemetry.md` — earlier versions had a `/chain-metrics` skill that estimated these, but estimated metrics dressed up as measurements are worse than none.
 
 A safety hook blocks destructive git before it runs. The PreToolUse hook catches force pushes (including the short `-f` and refspec forms), `reset --hard`, `clean -f`, and `rm -rf`. Its block-and-pass list is checked in CI, alongside the agent definitions and the skills layer.
 
