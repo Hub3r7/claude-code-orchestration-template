@@ -25,6 +25,7 @@ task description. When in doubt between two tiers, take the higher one (CLAUDE.m
 | 11 | New CI workflow using repository secrets | 3 | Executes on shared infrastructure with credential access — an external surface despite being "just YAML" |
 | 12 | Add login/session handling | 4 | Auth is security-critical → full chain, hunter and defender |
 | 13 | Replace the serialization format used across modules | 4 | Core/shared code plus data integrity — a new major component in effect |
+| 14 | Any edit in a single-file project ("everything is core") | by change type | The shared/core rule targets code other components depend on; applied to a single-file project it would make every typo Tier 3. Classify by the nature of the change (behavior, I/O, security surface), not by file topology. (Found by critic, 2026-07-05) |
 
 ## Project-specific cases
 

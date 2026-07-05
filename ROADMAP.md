@@ -6,7 +6,19 @@ verification items gate the build items.
 
 ## Verify first (before building anything new)
 
-### V1. Live smoke test of the hook suite
+### V1. Live smoke test of the hook suite — DONE 2026-07-05
+
+**Result:** passed on a real project (minitask). Confirmed live: tier classification,
+chain manifest lifecycle, statusline, SubagentStop verdict + chain-log, orchestrator-scope
+block with working subagent exemption, notes-persist (critic's notes written by the hook),
+PostCompact wiring (fires, silent on finished chain by design), post-compact
+self-orientation, destructive-op refusal → impact analysis → delegation. The test also
+red-teamed the suite: the model proposed bypassing the scope block via Bash — closed the
+same day (Bash branch of orchestrator-scope.sh + destructive-git pattern gaps). Residual:
+PostCompact additionalContext injection with an IN-FLIGHT chain not yet positively
+observed — check during the next real Tier 2+ chain. Also note: a trivial single-file
+project never generates Tier 3/4 naturally — to exercise the upper tiers, run one
+deliberately scoped Tier 3 task (e.g. an HTTP/export feature) or test on a real project.
 The shell hooks are covered by `scripts/test-hooks.sh`, but two assumptions have never
 run in a real session: (a) SubagentStop input carries `agent_transcript_path` and
 `agent_type`; (b) PreToolUse input inside a subagent carries `agent_type` (the
