@@ -1,164 +1,182 @@
-# Roadmap — executable recipes
+# Roadmap & Verification Ledger
 
-Each item below is written as a recipe a mid-tier model can execute without design
-work: the design decisions are already made here. Order within sections matters —
-verification items gate the build items.
+Two things in one file: an honest record of what has actually been verified, and the
+executable recipes for what's next. The ledger is deliberately conservative — a box is
+checked only for what has been observed, and partial results say so.
 
-## Verify first (before building anything new)
+## Current verified status (2026-07-05)
 
-### V1. Live smoke test of the hook suite — DONE 2026-07-05
+Validated end-to-end on two real projects: **minitask** (a single-file CLI) and
+**wp-toolkit** (a multi-module WordPress toolkit, four autonomous chains across Tiers
+2–4). Plus a CI test suite (`scripts/test-hooks.sh`, `validate_agents.py`,
+`validate_skills.py`, `validate_casebook.py`).
 
-**Result:** passed on a real project (minitask). Confirmed live: tier classification,
-chain manifest lifecycle, statusline, SubagentStop verdict + chain-log, orchestrator-scope
-block with working subagent exemption, notes-persist (critic's notes written by the hook),
-PostCompact wiring (fires, silent on finished chain by design), post-compact
-self-orientation, destructive-op refusal → impact analysis → delegation. The test also
-red-teamed the suite: the model proposed bypassing the scope block via Bash — closed the
-same day (Bash branch of orchestrator-scope.sh + destructive-git pattern gaps). Residual:
-PostCompact additionalContext injection with an IN-FLIGHT chain not yet positively
-observed — check during the next real Tier 2+ chain. Also note: a trivial single-file
-project never generates Tier 3/4 naturally — to exercise the upper tiers, run one
-deliberately scoped Tier 3 task (e.g. an HTTP/export feature) or test on a real project.
-The shell hooks are covered by `scripts/test-hooks.sh`, but two assumptions have never
-run in a real session: (a) SubagentStop input carries `agent_transcript_path` and
-`agent_type`; (b) PreToolUse input inside a subagent carries `agent_type` (the
-orchestrator-scope exemption depends on it).
+Highlights:
+- **Tiers 1–4 each ran on a real task.** Both Tier 4 chains caught a real bug via the
+  loop-back protocol — one was a fail-open security check (a bare-relative config path
+  that silently skipped a git-tracking guard).
+- **Casebook seeding works and is accurate.** Bootstrap seeded 3–5 project-specific cases
+  from wp-toolkit's risk topology; all four task classifications traced to sound seeded
+  cases (verified post-hoc).
+- **The live run found a real template bug** that CI had missed: the read-only-agent notes
+  hook truncated structured notes to their title. Fixed, with a regression test using the
+  real note format. This is the headline result — a real project surfaced a defect the
+  simplified unit test could not.
 
-1. Copy `template/` contents into a scratch project, install `settings.template.json`
-   as `.claude/settings.json`.
-2. Run one Tier 1 chain (developer → quality-gate → docs) on a trivial bug.
-3. Confirm: verdict recorded in `.agentNotes/chain-log.jsonl`; developer could edit
-   project files (scope hook exempted it); orchestrator got blocked when editing a
-   project file directly; status line rendered.
-4. If a field is missing in practice, fix the affected hook's `jq` paths — the designs
-   hold, only field names may drift.
+## Validation matrix
 
-### V1.5. Full live test on a fresh project — NEXT (user has a candidate project)
-Install the template on a project that never had it (cp + `doctor.sh` + `/bootstrap`),
-then work normally for a few sessions. Checklist — each item is a residual no CI test
-covers:
-1. `doctor.sh` passes on the fresh install; `/bootstrap` seeds the profile, the active
-   skill set, and 3-5 project casebook cases (Phase 3c).
-2. One Tier 1 chain end-to-end driven by `chain.sh` (init → advance → complete lands a
-   `chain_complete` line in the log; statusline tracks it).
-3. One deliberate Tier 3 task (external I/O — e.g. an HTTP export) → hunter/defender
-   position runs; the Tier 3 approval gate is presented first.
-4. Mid-chain: restart or `/resume` the session → SessionStart re-injects the manifest;
-   send an unrelated prompt → the UserPromptSubmit one-line reminder appears.
-5. Stop guard: at least one blocked turn-end mid-chain; the model reacts by continuing
-   or explicitly pausing (never loops).
-6. Ask-gate: ask the model to tweak a hook — the approval prompt must appear.
-7. `/deep-analysis` runs forked (main context stays small — verify with `/usage`).
-8. Finish with `/consolidate` as V2-lite: verdicts, `chain_complete` rows, tool
-   failures, casebook proposals. Record conclusions in V2 below.
+Legend: `[x]` verified live · `[~]` partial or unit-tested only · `[ ]` not yet exercised.
 
-### V2. Evidence review after ~2 weeks of use
-Can run as the closing step of V1.5 — `chain_complete`/`chain_abandoned` events give
-per-chain evidence without waiting two weeks.
-Read `.agentNotes/chain-log.jsonl` across projects. Questions: how many FAILs were real
-catches vs. noise? Does Tier 2's double quality-gate ever catch anything the single gate
-wouldn't? Outcomes: (a) keep, (b) slim Tier 2 to one gate, (c) recalibrate tier
-upgrade rules. Also sanity-check operating cards: if gate findings got shallower after
-the cards landed, tighten the go-deep triggers in the affected cards.
+| Capability | Status | Evidence |
+|-----------|:------:|----------|
+| Tier 0 chain | `[ ]` | trivial path; never run as its own chain |
+| Tier 1 chain | `[x]` | minitask (developer → quality-gate → docs) |
+| Tier 2 chain | `[x]` | wp-toolkit Task 2 |
+| Tier 3 chain | `[x]` | wp-toolkit Task 1 (hunter position ran) |
+| Tier 4 chain | `[x]` | wp-toolkit Tasks 3 & 4 (hunter ∥ defender; both caught a real bug) |
+| Casebook (seed + correction + portable format) | `[x]` | bootstrap Phase 3c cases; case-14 correction; JSONL parity in CI |
+| Bootstrap | `[x]` | minitask + wp-toolkit |
+| `doctor.sh` | `[x]` | wp-toolkit, all checks green on fresh install |
+| Chain manifest via `chain.sh` | `[x]` | 4 chains: init → advance → complete, accurate FAIL counts |
+| Verdict logging (`chain-log.jsonl`) | `[x]` | full log across 4 chains |
+| Loop-back protocol (FAIL → fix → PASS) | `[x]` | 2 real catches on wp-toolkit Tier 4 |
+| Circuit breaker (3-FAIL block) | `[~]` | unit-tested in `test-hooks.sh`; never hit 3 FAILs live |
+| Destructive-git guard | `[x]` | unit-tested + live refusal (minitask `rm -rf`) |
+| Orchestrator write block | `[x]` | live (minitask red-team: shell-bypass attempt closed) |
+| Developer write exemption | `[x]` | live (developers edited across both projects) |
+| Read-only notes persistence | `[~]` | bug found & fixed during this test; fix unit-tested, live re-validation pending |
+| Resume / compaction re-orientation | `[~]` | PostCompact wiring fires (silent on finished chain); in-flight injection + SessionStart/UserPromptSubmit orientation not yet positively observed |
+| Vendor drift check | `[x]` | monthly CI job, ran clean at build time |
 
-## Build next (in this order)
+## Known limits
+
+- **Claude Code only.** Built on its sub-agent system, hooks, and skills; it does not work
+  with other AI tools or IDEs.
+- **Token overhead.** Multi-agent review costs more than a single pass; a Tier 4 chain is
+  seven agent runs. The tiers scale the cost to the risk and the operating cards cut the
+  fixed overhead, but the overhead is real.
+- **Not a replacement for CI, human review, or security tooling.** An agent PASS is a
+  review signal, not formal assurance. Hunter/defender review the attack and integrity
+  surface; they do not prove the absence of vulnerabilities.
+- **Needs more external validation.** So far it has run on two projects, both mine.
+
+## Next external validation targets
+
+- **3–5 independent repositories** that aren't mine, across different stacks, run through
+  the recommended first-validation path.
+- **One public demo transcript** of a full Tier 3/4 chain, including a real FAIL → fix.
+- **One short demo video or GIF** of the status line and a chain in flight.
+- **Clearer failure-mode docs** — what each hook block looks like and how to respond
+  (seed exists in the operator guide; expand with real transcripts).
+- **A contribution guide** — how to add agents, tiers, or casebook cases, and how to run
+  the test suite.
+
+---
+
+## Verification history
+
+### V1 — live smoke test of the hook suite (DONE 2026-07-05, minitask)
+Passed on a single-file CLI. Confirmed live: tier classification, chain manifest
+lifecycle, status line, SubagentStop verdict + chain-log, orchestrator-scope block with
+working subagent exemption, PostCompact wiring (fires; silent on a finished chain by
+design), destructive-op refusal → impact analysis → delegation. Also red-teamed: the model
+proposed bypassing the scope block via Bash — closed the same day (Bash branch of
+`orchestrator-scope.sh` + destructive-git pattern gaps). *Correction (found in V1.5): the
+"notes-persist works" observation here held only for flat-bullet notes; structured notes
+were being truncated — see V1.5.*
+
+### V1.5 — full live test on a fresh project (DONE 2026-07-05, wp-toolkit)
+Four autonomous chains (clear_cache multi-plugin, venv/requirements, multi-project support,
+credential hardening). Results:
+- Tier classification matched the seeded casebook on all four tasks; the model classified
+  equal-to-or-higher than a blind human estimate, never lower, and every choice traced to a
+  sound seeded case.
+- Loop-back caught two real bugs (both Tier 4), including a fail-open security check.
+- The circuit breaker never fired (max 1 FAIL per gate) — correct, no false escalation.
+- The offline smoke test stayed green and was expanded by the tasks with security-aware
+  checks — the Tier 4 ceremony produced real hardening depth.
+- **Surfaced and fixed a real template bug:** `notes-persist.sh` truncated read-only agents'
+  structured notes. Fixed + regression test.
+- **Still not exercised:** in-flight resume/compaction re-orientation, the stop guard, the
+  ask-gate on hook edits, and `/deep-analysis` fork (the run went straight through without a
+  `/compact` or a hook edit). Tier 0 also never occurred naturally.
+
+### V2 — evidence review
+Can run as the closing step of a real project's use — `chain_complete` / `chain_abandoned`
+events give per-chain evidence without waiting weeks. Questions: how many FAILs were real
+catches vs. noise? Does Tier 2's double quality-gate ever catch what a single gate wouldn't?
+Outcomes: keep / slim Tier 2 to one gate / recalibrate tier upgrade rules. First pass
+(wp-toolkit, 4 chains): quality-gate 8 PASS / 2 FAIL, both FAILs productive; hunter and
+defender all-PASS but too small a sample to judge (and their notes were lost to the
+notes-persist bug — reassess once notes persist).
+
+## Build log
 
 ### B1. Consolidation step — notes → project rules — DONE 2026-07-05
-**Why:** recurring findings should become preventive rules, not repeated catches.
-1. New skill `/consolidate` (sw-dev team): read all `.agentNotes/*/notes.md` +
-   `chain-log.jsonl`; propose (do not auto-apply) promotions: recurring code finding →
-   `docs/project-rules.md`, recurring tier misjudgment → `tier-casebook.md`, obsolete
-   notes → deletion list. Present as a diff for user approval.
-2. Add one line to the docs agent: at the end of Tier 3-4 chains, recommend
-   `/consolidate` if its notes contain a finding seen ≥3 times.
+`/consolidate`: reads `.agentNotes/*/notes.md` + `chain-log.jsonl`, proposes (never
+auto-applies) promotions — recurring finding → `docs/project-rules.md`, recurring tier
+misjudgment → `tier-casebook.md`, obsolete notes → deletion. docs agent recommends it after
+Tier 3-4 chains with a finding seen ≥3 times.
 
 ### B2. Model & effort reassignment (cost) — DONE 2026-07-05
-**Why:** cost is a binding constraint (July 2026).
-1. In `bootstrap-protocol.md`, change the default: developer=Sonnet (Opus only on
-   Tier 3-4 via an orchestrator note), architect stays Opus.
-2. Gate agents: `effort: medium` for Tier 1-2 reviews — add a frontmatter comment and a
-   bootstrap question. Keep `effort: high` on hunter/defender.
-3. Measure with `/usage` before/after on comparable tasks; revert if quality visibly drops.
+developer = Sonnet (Opus only on Tier 3-4 via an orchestrator note); architect stays Opus.
+Gate agents `effort: medium` for Tier 1-2; hunter/defender stay `high`. Bootstrap asks.
 
-### B3. Plugin packaging — POSTPONED (deliberately; revisit when distribution matters)
-**Why:** distribution + updates; "copy a folder" doesn't version.
-1. Create `plugin.json` (name: claude-code-orchestration, the `template/` content:
-   agents, skills, hooks, settings fragments). Follow the plugin layout from
-   code.claude.com/docs plugins reference — verify current schema first, do not trust
-   memory.
-2. Marketplace entry: `.claude-plugin/marketplace.json` in this repo; users then install
-   via marketplace add + `enabledPlugins`.
-3. Keep the copy-a-folder path in README as the no-plugin fallback.
+### B3. Plugin packaging — POSTPONED (revisit now that sharing has started)
+`plugin.json` + `.claude-plugin/marketplace.json` so install versions instead of "copy a
+folder". Verify the current plugin schema against code.claude.com/docs first. Keep the
+copy-a-folder path as the no-plugin fallback. *This is the top remaining build item now
+that the template is being shared — copying folders does not version or update.*
 
-### B4. Sandbox as third enforcement ring — DONE 2026-07-05 (macOS run still unverified)
-**Why:** the destructive-git hook is regex; sandbox is categorical.
-1. Add to `settings.template.json`: `"sandbox": {"enabled": true, "autoAllowBashIfSandboxed": true}`
-   plus `permissions.deny` mirrors of the hook's worst cases (`Bash(git push --force*)`, …).
-2. Keep the regex hook — layered defense, hook gives better error messages.
-3. Test on Linux + macOS before committing; sandbox availability differs.
+### B4. Sandbox as a categorical enforcement ring — DONE 2026-07-05 (macOS run unverified)
+`settings.template.json` enables the OS sandbox + `permissions.deny` mirrors of the
+destructive-git patterns. The regex hook stays for better error messages. Linux verified;
+macOS sandbox availability still unconfirmed.
 
-### B5. Self-maintenance automation — DONE 2026-07-05 (drift check in CI monthly; /consolidate cadence is manual or /loop)
-**Why:** the evidence loop must close without anyone remembering it.
-1. Weekly (local `/loop` or a scheduled routine): run the V2 evidence review, output a
-   short tuning report.
-2. Monthly: `git clone --depth 1` upstream agent-skills, diff against vendored copies,
-   report drift (the refresh itself stays manual — cards must be regenerated with it,
-   see `INTEGRATION.md` bridge 6).
+### B5. Self-maintenance automation — DONE 2026-07-05
+Monthly CI drift check against upstream agent-skills; `/consolidate` cadence is manual or
+`/loop`. The vendored refresh stays manual (cards regenerate with it — see `INTEGRATION.md`).
 
 ### B6. Casebook as a portable format — DONE 2026-07-05
-**Why:** external review (July 2026): the casebook is a learning blast-radius
-classifier written in markdown; a defined record schema makes casebooks shareable
-across projects, aggregatable, and eval-ready. Each case now exists twice: a
-human-readable row in `tier-casebook.md` (what the orchestrator reads) and a
-machine-readable record in `tier-casebook.jsonl` (the interchange format — schema in
-`casebook-format.md`; the change characteristics mirror the tier upgrade rules 1:1).
-`scripts/validate_casebook.py` keeps the pair in sync in CI.
+Every case exists twice: a human-readable row in `tier-casebook.md` and a machine-readable
+record in `tier-casebook.jsonl` (schema in `casebook-format.md`; change characteristics
+mirror the tier rules 1:1). `validate_casebook.py` keeps the pair in sync in CI.
 
-### B7. Agent Teams adapter — CONDITIONAL (start when Agent Teams leaves the experimental flag, or at first real Teams use)
-**Why:** external review (July 2026): "risk-tiered autonomy for parallel agent teams"
-— translate tiers from *which sequential chain runs* to *how much autonomy a teammate
-gets*. Platform facts verified 2026-07-05: Agent Teams is experimental behind
-`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, has no session resumption, and costs
-significantly more tokens; `TaskCompleted`/`TeammateIdle` hooks exist (exit-2
-blocking) but fire only inside Agent Teams; Outcomes rubrics are a Managed Agents API
-feature, NOT in the Claude Code CLI.
-1. Map tiers to autonomy levels: Tier 0-1 = teammate acts alone; Tier 2 =
-   quality-gate review before merge; Tier 3-4 = gate + human approval on every merge.
-2. Implement as a `TaskCompleted` exit-2 hook reading the tier from the chain
-   manifest — in teams mode this replaces transcript-grep as the verdict substrate.
-3. Keep the sequential chain + SubagentStop suite as the stable core: it runs on
-   stock Claude Code with no flags (a distribution advantage), and the chain manifest
-   keeps doing what Dreaming does not (in-flight chain state, FAIL counters,
-   statusline, PostCompact re-injection).
-4. If the CLI ever ships a native structured verdict channel, kill the verdict regex
-   in `gate-verdict-check.sh` in its favor.
+### B7. Agent Teams adapter — CONDITIONAL (start when Agent Teams leaves the experimental flag)
+Translate tiers from *which sequential chain runs* to *how much autonomy a teammate gets*
+(Tier 0-1 solo; Tier 2 gate before merge; Tier 3-4 gate + human approval), via a
+`TaskCompleted` exit-2 hook reading the tier from the manifest. Platform facts verified
+2026-07-05: Agent Teams is experimental behind `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, has
+no session resumption, and costs more tokens; `TaskCompleted`/`TeammateIdle` fire only
+inside Agent Teams; Outcomes rubrics are a Managed Agents API feature, not in the CLI. Keep
+the sequential chain + SubagentStop suite as the stable core — it runs on stock Claude Code
+with no flags. If the CLI ever ships a native structured verdict channel, retire the verdict
+regex in favor of it.
 
 ### B8. Subagent native memory — EVALUATE (during the next real project week)
-**Why:** subagents support persistent memory natively (`memory: user|project|local`
-frontmatter, GA v2.1.59) — overlapping `.agentNotes` + `notes-persist.sh`. Do NOT
-swap blindly: native memory is machine-local and lives outside the repo, while
-`.agentNotes` is in-repo, protocol-capped, and feeds `/consolidate`.
-1. Enable `memory: project` on ONE consultant (critic) alongside the existing notes.
-2. After a week of real use compare: what native memory retained vs the hook-written
-   notes; whether `/consolidate` can reach it; whether the 200-line discipline holds.
-3. Decide adopt / complement / reject — record the evidence here either way.
+Subagents support persistent memory natively (`memory: user|project|local`, GA v2.1.59),
+overlapping `.agentNotes` + `notes-persist.sh`. Native memory is machine-local and outside
+the repo; `.agentNotes` is in-repo, protocol-capped, and feeds `/consolidate`. Enable
+`memory: project` on one consultant (critic) alongside the notes, compare over a week, then
+adopt / complement / reject with evidence. *Extra relevance after the notes-persist bug:
+native memory is a candidate second path for read-only agents.*
 
-**Optional refactor (no urgency):** agent frontmatter supports per-agent `hooks` —
-the verdict check could move from global settings into the three gate agents' own
-files (self-contained definitions). Same behavior, nicer packaging; do it
-opportunistically when those agents are next touched.
+**Optional refactor (no urgency):** per-agent `hooks` frontmatter could move the verdict
+check into the gate agents' own files (self-contained definitions). Same behavior, nicer
+packaging; do it opportunistically.
 
 ## Explicit non-goals
-- LangGraph or any external runtime — wrong layer; deterministic chains, if ever needed,
+
+- **LangGraph or any external runtime** — wrong layer; deterministic chains, if ever needed,
   go through Claude Code's native workflow scripts.
-- Vector-DB / external memory products — the file-based memory (.agentNotes, chain
+- **Vector-DB / external memory products** — the file-based memory (`.agentNotes`, chain
   manifest, casebook) is deliberate; invest in consolidation (B1), not storage.
-- Resurrecting the retired teams (devops-sre, data-engineering, research-analysis) —
-  they live at the `four-teams` git tag; adapt the single template instead.
-- Agent `skills:` preloading — it injects full skill content at spawn; the operating
+- **Resurrecting the retired teams** (devops-sre, data-engineering, research-analysis) — they
+  live at the `four-teams` git tag; adapt the single template instead.
+- **Agent `skills:` preloading** — it injects full skill content at spawn; the operating
   cards' two-tier read exists precisely to avoid paying that on every invocation.
-- CLAUDE.md `@imports` — imported files load at launch anyway: same tokens, more churn.
-- `type: "agent"` hooks and other experimental hook surface — same rule as Agent
-  Teams (B7): adapters wait for GA.
-- Per-agent `isolation: worktree` defaults — worktree isolation stays an orchestrator
+- **CLAUDE.md `@imports`** — imported files load at launch anyway: same tokens, more churn.
+- **`type: "agent"` hooks and other experimental hook surface** — same rule as Agent Teams
+  (B7): adapters wait for GA.
+- **Per-agent `isolation: worktree` defaults** — worktree isolation stays an orchestrator
   judgment call for high-blast-radius Tier 3-4 work.
