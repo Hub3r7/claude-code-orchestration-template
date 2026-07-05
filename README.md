@@ -69,18 +69,6 @@ Credit to Addy Osmani for the doctrine layer this framework depends on. (This pr
 
 **Two-tier read.** Each chain position maps to a lifecycle phase (define, plan, build, verify, review, ship) and operates under the skills for that phase — nothing "calls" a skill; being the developer in the build phase *means* working under TDD and incremental-implementation. Agents read the ten-line operating card every time and open the full doctrine only when a go-deep trigger fires, so depth is paid for when it matters. Bootstrap works out which skills your project actually needs — a CLI tool doesn't need browser-testing — and deactivates the rest.
 
-## How it relates to other Claude Code frameworks
-
-The Claude Code ecosystem has converged on a thesis: the bottleneck is discipline, not model intelligence. Most of these frameworks are **complementary layers**, not competitors. This one is the control/governance layer, and it vendors agent-skills as its doctrine.
-
-| Framework | What it primarily constrains |
-|-----------|------------------------------|
-| [agent-skills](https://github.com/addyosmani/agent-skills) (Addy Osmani) | Engineering doctrine — the lifecycle practices (vendored here) |
-| [Superpowers](https://github.com/obra/superpowers) | Execution discipline — enforced TDD (RED → GREEN → REFACTOR) |
-| GSD | Context stability — specs and anti-drift over long sessions |
-| gstack | Role-based scaffolding — bounded technical context for reasoning |
-| **This project** | **Control layer — routes by blast radius, enforces the protocol with hooks, logs evidence** |
-
 ## When to use it — and when not
 
 **Use it when:** you run multi-agent work on a codebase and want risk-proportionate review; you want the protocol enforced rather than hoped for; you keep a durable, auditable record of what the review chain decided; or you want tier classification that learns your project's risk topology over time.
