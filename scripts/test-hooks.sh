@@ -38,7 +38,10 @@ for cmd in \
   "git push origin +main" \
   "git push --force-with-lease" \
   "git push --no-verify --force" \
+  "git -C repo push --force" \
+  "git -c user.name=x push -f" \
   "git reset --hard HEAD~1" \
+  "git -C /tmp/repo reset --hard" \
   "git checkout ." \
   "git checkout -- ." \
   "git restore ." \
@@ -46,10 +49,17 @@ for cmd in \
   "git clean -xdf" \
   "git branch -D foo" \
   "git branch --delete --force foo" \
+  "git stash drop" \
+  "git stash clear" \
+  "git reflog expire --expire=now --all" \
   "rm -rf build" \
   "rm -fr build" \
+  "rm -r -f build" \
+  "rm -f -r build" \
   "sudo rm -rf /tmp/x" \
-  "echo done && rm -rf dist"; do
+  "echo done && rm -rf dist" \
+  "find . -name '*.tmp' -delete" \
+  "find . -name '*.o' -exec rm {} \;"; do
   check 2 "$(run_hook "$cmd")" "$cmd"
 done
 
@@ -58,13 +68,21 @@ for cmd in \
   "git push origin main" \
   "git push -u origin main" \
   "git push --follow-tags" \
+  "git -C repo push origin main" \
   "git status" \
   "git checkout main" \
   "git checkout .github/workflows/ci.yml" \
   "git branch -d merged" \
   "git clean -n" \
+  "git stash" \
+  "git stash pop" \
+  "git stash list" \
+  "git reflog" \
   "rm file.txt" \
   "rm -r dir" \
+  "rm -f stale.lock" \
+  "find . -name '*.py'" \
+  "find . -type f -exec grep -l TODO {} \;" \
   "ls -laf" \
   "npm run perf" \
   "git log --format=+%h"; do
@@ -247,7 +265,30 @@ check 0 "$(run_scope Write "$WORK/.agentNotes/chain-state.json" "")" "chain stat
 check 0 "$(run_scope Edit "$WORK/docs/project-rules.md" "")" "project-rules.md is meta-config"
 check 0 "$(run_scope Write "/tmp/scratch.txt" "")" "paths outside the project pass"
 check 0 "$(run_scope Write "$WORK/src/main.py" "developer")" "subagents are exempt"
-check 0 "$(run_scope Bash "$WORK/src/main.py" "")" "non-edit tool ignored"
+check 0 "$(run_scope Grep "$WORK/src/main.py" "")" "non-watched tool ignored"
+
+# Bash branch: shell write forms against existing project files.
+run_scope_bash() {
+  # $1 = command string, $2 = agent_type ("" for main session)
+  jq -cn --arg c "$1" --arg a "$2" --arg w "$WORK" \
+    '{tool_name:"Bash",tool_input:{command:$c},cwd:$w}
+     + (if $a != "" then {agent_type:$a} else {} end)' \
+    | bash "$SCOPE_HOOK" >/dev/null 2>&1
+  echo $?
+}
+
+mkdir -p "$WORK/src" && echo "x = 1" > "$WORK/src/app.py"
+
+check 2 "$(run_scope_bash "echo hacked > src/app.py" "")" "redirect into existing project file blocked"
+check 2 "$(run_scope_bash "python3 gen.py >> src/app.py" "")" "append into existing project file blocked"
+check 2 "$(run_scope_bash "sed -i 's/x/y/' src/app.py" "")" "sed -i on existing project file blocked"
+check 2 "$(run_scope_bash "cat patch | tee src/app.py" "")" "tee into existing project file blocked"
+check 0 "$(run_scope_bash "echo hacked > src/app.py" "developer")" "subagent shell writes are exempt"
+check 0 "$(run_scope_bash "echo x > /tmp/scratch.txt" "")" "shell write outside project passes"
+check 0 "$(run_scope_bash "echo '{}' > .agentNotes/chain-state.json" "")" "shell write to meta-config passes"
+check 0 "$(run_scope_bash "python3 -m unittest > new-report.txt" "")" "redirect to a NEW file passes"
+check 0 "$(run_scope_bash "grep -n foo src/app.py" "")" "read-only shell command passes"
+check 0 "$(run_scope_bash "echo warn >&2 && git status 2>/dev/null" "")" "fd/devnull redirects pass"
 
 # ---------------------------------------------------------------------------
 # post-compact-orient.sh (PostCompact)

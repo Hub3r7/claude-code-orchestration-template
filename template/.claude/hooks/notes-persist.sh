@@ -44,6 +44,13 @@ NOTES=$(printf '%s\n' "$RESP" | awk '
 # Nothing to persist (no section, or an empty one) → leave existing notes alone.
 [ -n "$(printf '%s' "$NOTES" | tr -d '[:space:]')" ] || exit 0
 
+# The protocol caps notes at 200 lines; enforce a hard ceiling at 250 so a
+# runaway section cannot bloat the file.
+if [ "$(printf '%s\n' "$NOTES" | wc -l)" -gt 250 ]; then
+  NOTES="$(printf '%s\n' "$NOTES" | head -n 250)
+[truncated by notes-persist hook — keep notes under 200 lines]"
+fi
+
 mkdir -p "$CWD/.agentNotes/$AGENT"
 printf '%s\n' "$NOTES" > "$CWD/.agentNotes/$AGENT/notes.md"
 

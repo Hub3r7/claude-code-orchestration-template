@@ -107,7 +107,7 @@ Ownership is split: the orchestrator owns `task`, `tier`, `chain`, and `done` (a
 **What Claude Code MAY edit directly:**
 - Meta-configuration only: `CLAUDE.md`, `.claude/**`, `.agentNotes/**`, `docs/project-rules.md`
 - This is project configuration, not project code — no delegation needed
-- With the hooks installed this boundary is mechanical: `orchestrator-scope.sh` (PreToolUse) blocks main-session writes outside the list above; subagents are exempt and governed by their own tool policy
+- With the hooks installed this boundary is mechanical: `orchestrator-scope.sh` (PreToolUse) blocks main-session writes outside the list above — including the common Bash write forms (output redirection, `tee`, `sed -i`) against existing project files. Routing around the boundary through the shell is a protocol violation, not a loophole. Subagents are exempt and governed by their own tool policy
 
 **Exception — bootstrap:** The orchestrator directly edits `CLAUDE.md`, agent files, and `project-context.md` during bootstrap. This is configuration, not project code — no delegation needed.
 

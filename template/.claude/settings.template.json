@@ -25,6 +25,10 @@
           {
             "type": "command",
             "command": ".claude/hooks/block-destructive-git.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/orchestrator-scope.sh"
           }
         ]
       },

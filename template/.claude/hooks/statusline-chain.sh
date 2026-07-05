@@ -18,9 +18,11 @@ if [ -s "$STATE" ] && jq -e . "$STATE" >/dev/null 2>&1; then
     else empty end
   ' "$STATE" 2>/dev/null)
   if [ -n "$OUT" ]; then
-    printf '%s | %s' "${MODEL:-claude}" "$OUT"
+    # Strip control characters — the task name comes from a file and must not
+    # be able to smuggle escape sequences into the terminal.
+    printf '%s | %s' "${MODEL:-claude}" "$OUT" | tr -d '\000-\010\013\014\016-\037\177'
     exit 0
   fi
 fi
 
-printf '%s' "${MODEL:-claude}"
+printf '%s' "${MODEL:-claude}" | tr -d '\000-\010\013\014\016-\037\177'
