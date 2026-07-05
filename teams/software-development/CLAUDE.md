@@ -103,8 +103,9 @@ Ownership is split: the orchestrator owns `task`, `tier`, `chain`, and `done` (a
 - Does NOT use EnterPlanMode tool — orchestrators coordinate, agents execute
 
 **What Claude Code MAY edit directly:**
-- Meta-configuration only: `CLAUDE.md`, `.claude/agents/*.md`, `.claude/docs/project-context.md`, `docs/project-rules.md`
+- Meta-configuration only: `CLAUDE.md`, `.claude/**`, `.agentNotes/**`, `docs/project-rules.md`
 - This is project configuration, not project code — no delegation needed
+- With the hooks installed this boundary is mechanical: `orchestrator-scope.sh` (PreToolUse) blocks main-session writes outside the list above; subagents are exempt and governed by their own tool policy
 
 **Exception — bootstrap:** The orchestrator directly edits `CLAUDE.md`, agent files, and `project-context.md` during bootstrap. This is configuration, not project code — no delegation needed.
 
@@ -152,7 +153,9 @@ Each position in the chain is an engineering-lifecycle phase (DEFINE→PLAN→BU
 
 **Mechanical enforcement:** with the hooks from `settings.template.json` installed, both rules are enforced by code, not prose. `gate-verdict-check.sh` (SubagentStop) refuses to let a review agent finish without an explicit verdict or a `## BLOCKED` section, and records FAIL counts per gate in `.agentNotes/chain-state.json`. `chain-circuit-breaker.sh` (PreToolUse on agent spawning) blocks the next invocation of a gate that has issued 3 FAILs — the loop physically cannot continue until the user decides and the state file is reset (`rm .agentNotes/chain-state.json`). Stale counters can only escalate too early, never let a loop run too long.
 
-**Chain routing:** Agents write a HANDOFF section with full context for the next agent. The orchestrator follows the tier chain by default but may override. Tier 3: hunter (external I/O, input parsers, network) vs defender (data persistence, audit trails, file integrity).
+Three more rings complete the enforcement: `orchestrator-scope.sh` (PreToolUse) keeps the orchestrator out of project files, a **semantic prompt hook** (PostToolUse on agent completion, runs on the small fast model) checks what regex cannot — that a FAIL carries a numbered remediation list, that a PASS handoff carries acceptance criteria — and feeds violations back as reasons, and `post-compact-orient.sh` (PostCompact) re-injects the chain manifest into context after compaction so an in-flight chain resumes mechanically.
+
+**Chain routing:** Agents write a HANDOFF section with full context for the next agent. The orchestrator follows the tier chain by default but may override. Tier 3: hunter (external I/O, input parsers, network) vs defender (data persistence, audit trails, file integrity). **Tier 4 parallel review:** hunter and defender are independent, read-only, and need nothing from each other — invoke them in parallel (two Task calls in one message); docs still runs last after both return.
 
 **UI chain insertion:** When a Tier 2-4 task involves UI changes, insert ui-designer after architect and before quality-gate (e.g., architect → ui-designer → quality-gate → developer → ...).
 

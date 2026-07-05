@@ -236,6 +236,79 @@ fi
 
 check 0 "$(run_notes_str Bash critic "$with_notes")" "non-Agent tool ignored"
 
+# ---------------------------------------------------------------------------
+# orchestrator-scope.sh (PreToolUse on Edit|Write|NotebookEdit)
+# ---------------------------------------------------------------------------
+SCOPE_HOOK="$HOOKS_DIR/orchestrator-scope.sh"
+echo "Hook: $SCOPE_HOOK"
+
+run_scope() {
+  # $1 = tool_name, $2 = file_path, $3 = agent_type ("" for main session)
+  jq -cn --arg n "$1" --arg f "$2" --arg a "$3" --arg c "$WORK" \
+    '{tool_name:$n,tool_input:{file_path:$f},cwd:$c}
+     + (if $a != "" then {agent_type:$a} else {} end)' \
+    | bash "$SCOPE_HOOK" >/dev/null 2>&1
+  echo $?
+}
+
+check 2 "$(run_scope Write "$WORK/src/main.py" "")" "orchestrator blocked from project code"
+check 2 "$(run_scope Edit "README.md" "")" "orchestrator blocked from project docs"
+check 0 "$(run_scope Write "$WORK/CLAUDE.md" "")" "CLAUDE.md is meta-config"
+check 0 "$(run_scope Edit "$WORK/.claude/agents/developer.md" "")" "agent files are meta-config"
+check 0 "$(run_scope Write "$WORK/.agentNotes/chain-state.json" "")" "chain state is meta-config"
+check 0 "$(run_scope Edit "$WORK/docs/project-rules.md" "")" "project-rules.md is meta-config"
+check 0 "$(run_scope Write "/tmp/scratch.txt" "")" "paths outside the project pass"
+check 0 "$(run_scope Write "$WORK/src/main.py" "developer")" "subagents are exempt"
+check 0 "$(run_scope Bash "$WORK/src/main.py" "")" "non-edit tool ignored"
+
+# ---------------------------------------------------------------------------
+# post-compact-orient.sh (PostCompact)
+# ---------------------------------------------------------------------------
+COMPACT_HOOK="$HOOKS_DIR/post-compact-orient.sh"
+echo "Hook: $COMPACT_HOOK"
+
+run_compact() {
+  jq -cn --arg c "$WORK" '{cwd:$c}' | bash "$COMPACT_HOOK" 2>/dev/null
+}
+
+rm -f "$STATE"
+if [ -n "$(run_compact)" ]; then
+  echo "  FAIL: post-compact emitted output with no chain state"; fail=1
+fi
+
+echo '{"task":"t","tier":3,"chain":["architect","developer","docs"],"done":["architect"],"fail_counts":{}}' > "$STATE"
+OUT="$(run_compact)"
+if ! printf '%s' "$OUT" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
+  echo "  FAIL: post-compact did not emit additionalContext for an unfinished chain"; fail=1
+elif ! printf '%s' "$OUT" | grep -q "architect"; then
+  echo "  FAIL: post-compact context does not carry the manifest"; fail=1
+fi
+
+echo '{"task":"t","tier":1,"chain":["developer","docs"],"done":["developer","docs"],"fail_counts":{}}' > "$STATE"
+if [ -n "$(run_compact)" ]; then
+  echo "  FAIL: post-compact emitted output for a finished chain"; fail=1
+fi
+
+# ---------------------------------------------------------------------------
+# statusline-chain.sh
+# ---------------------------------------------------------------------------
+SL_HOOK="$HOOKS_DIR/statusline-chain.sh"
+echo "Hook: $SL_HOOK"
+
+run_statusline() {
+  jq -cn --arg c "$WORK" '{cwd:$c,model:{display_name:"TestModel"}}' | bash "$SL_HOOK" 2>/dev/null
+}
+
+echo '{"task":"t","tier":3,"chain":["architect","developer","docs"],"done":["architect"],"fail_counts":{"quality-gate":1}}' > "$STATE"
+OUT="$(run_statusline)"
+case "$OUT" in
+  *T3*1/3*next:\ developer*FAIL\ quality-gate:1*) ;;
+  *) echo "  FAIL: statusline for in-flight chain rendered: '$OUT'"; fail=1 ;;
+esac
+
+rm -f "$STATE"
+check TestModel "$(run_statusline)" "statusline falls back to model name"
+
 if [ "$fail" -eq 0 ]; then
   echo "Hook tests OK."
 else

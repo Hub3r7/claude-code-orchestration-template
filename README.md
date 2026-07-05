@@ -38,7 +38,9 @@ Six slash commands cover the routine work: `/bootstrap`, `/tier-check`, `/commit
 
 A safety hook blocks destructive git before it runs. The PreToolUse hook catches force pushes (including the short `-f` and refspec forms), `reset --hard`, `clean -f`, and `rm -rf`. Its block-and-pass list is checked in CI, alongside the agent definitions and the skills layer.
 
-In the software-development team, two more hooks turn the review protocol from instructions into mechanics. A SubagentStop hook refuses to let a review agent finish without an explicit PASS/FAIL verdict (or a declared BLOCKED state), and counts FAILs per gate. A PreToolUse hook on agent spawning enforces the circuit breaker: after three FAILs on the same gate, the next re-review is blocked outright — the orchestrator has to escalate to you, it can't quietly keep looping. Both are covered by the same CI test suite as the git hook.
+In the software-development team, a hook suite turns the review protocol from instructions into mechanics. A SubagentStop hook refuses to let a review agent finish without an explicit PASS/FAIL verdict (or a declared BLOCKED state), and counts FAILs per gate. A PreToolUse hook on agent spawning enforces the circuit breaker: after three FAILs on the same gate, the next re-review is blocked outright — the orchestrator has to escalate to you, it can't quietly keep looping. A second PreToolUse hook keeps the orchestrator itself out of project files — code goes through the developer, or it doesn't go. A PostCompact hook re-injects the chain manifest after context compaction, so a chain in flight survives long sessions. And one prompt-based hook (running on the small, cheap model) checks what regex can't: that a FAIL actually carries a numbered fix list and a PASS handoff carries acceptance criteria. Everything mechanical is covered by the same CI test suite as the git hook.
+
+The template also ships a status line: while a chain runs, the terminal footer shows `T3 ▸ 2/6 ▸ next: developer ▸ FAIL quality-gate:1` — live orchestration state, straight from the chain manifest, at zero token cost.
 
 ## Engineering skills (software-development team)
 
