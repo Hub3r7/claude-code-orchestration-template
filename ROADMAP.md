@@ -12,8 +12,8 @@ run in a real session: (a) SubagentStop input carries `agent_transcript_path` an
 `agent_type`; (b) PreToolUse input inside a subagent carries `agent_type` (the
 orchestrator-scope exemption depends on it).
 
-1. Copy the sw-dev team into a scratch project, install `settings.template.json` as
-   `.claude/settings.json`.
+1. Copy `template/` contents into a scratch project, install `settings.template.json`
+   as `.claude/settings.json`.
 2. Run one Tier 1 chain (developer → quality-gate → docs) on a trivial bug.
 3. Confirm: verdict recorded in `.agentNotes/chain-log.jsonl`; developer could edit
    project files (scope hook exempted it); orchestrator got blocked when editing a
@@ -49,14 +49,13 @@ the cards landed, tighten the go-deep triggers in the affected cards.
 
 ### B3. Plugin packaging
 **Why:** distribution + updates; "copy a folder" doesn't version.
-1. Create `plugin.json` (name: claude-code-orchestration, the sw-dev team as content:
+1. Create `plugin.json` (name: claude-code-orchestration, the `template/` content:
    agents, skills, hooks, settings fragments). Follow the plugin layout from
    code.claude.com/docs plugins reference — verify current schema first, do not trust
    memory.
 2. Marketplace entry: `.claude-plugin/marketplace.json` in this repo; users then install
    via marketplace add + `enabledPlugins`.
-3. Keep the copy-a-folder path in README as the no-plugin fallback. Non-goal: porting
-   the other three teams to the plugin — sw-dev only until someone asks.
+3. Keep the copy-a-folder path in README as the no-plugin fallback.
 
 ### B4. Sandbox as third enforcement ring
 **Why:** the destructive-git hook is regex; sandbox is categorical.
@@ -78,4 +77,5 @@ the cards landed, tighten the go-deep triggers in the affected cards.
   go through Claude Code's native workflow scripts.
 - Vector-DB / external memory products — the file-based memory (.agentNotes, chain
   manifest, casebook) is deliberate; invest in consolidation (B1), not storage.
-- Porting hooks to the other three teams before V1+V2 prove them on sw-dev.
+- Resurrecting the retired teams (devops-sre, data-engineering, research-analysis) —
+  they live at the `four-teams` git tag; adapt the single template instead.

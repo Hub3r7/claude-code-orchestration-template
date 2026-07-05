@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-# Smoke tests for the PreToolUse/SubagentStop hooks.
+# Smoke tests for the PreToolUse/PostToolUse/SubagentStop/PostCompact hooks.
 # Verifies each hook blocks (exit 2) what it should and passes (exit 0) what it
-# shouldn't, that the verdict hook maintains circuit-breaker state correctly,
-# and that all four teams ship an identical destructive-git hook.
+# shouldn't, and that the verdict hook maintains circuit-breaker state correctly.
 set -u
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-HOOKS_DIR="$REPO_ROOT/teams/software-development/.claude/hooks"
+HOOKS_DIR="$REPO_ROOT/template/.claude/hooks"
 HOOK="$HOOKS_DIR/block-destructive-git.sh"
 VERDICT_HOOK="$HOOKS_DIR/gate-verdict-check.sh"
 BREAKER_HOOK="$HOOKS_DIR/chain-circuit-breaker.sh"
@@ -70,17 +69,6 @@ for cmd in \
   "npm run perf" \
   "git log --format=+%h"; do
   check 0 "$(run_hook "$cmd")" "$cmd"
-done
-
-# All four teams must ship an identical destructive-git hook.
-echo "Checking destructive-git hook is identical across all teams..."
-ref_sum="$(md5sum "$HOOK" | awk '{print $1}')"
-for h in "$REPO_ROOT"/teams/*/.claude/hooks/block-destructive-git.sh; do
-  sum="$(md5sum "$h" | awk '{print $1}')"
-  if [ "$sum" != "$ref_sum" ]; then
-    echo "  FAIL: $h differs from software-development copy"
-    fail=1
-  fi
 done
 
 # ---------------------------------------------------------------------------

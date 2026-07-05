@@ -14,7 +14,7 @@ The orchestrator reads each task, rates how much it could break on a scale of 0 
  Tier 4    architect → quality-gate → developer → quality-gate → hunter → defender → docs
 ```
 
-It's configuration, not code: one `CLAUDE.md` and a `.claude/` folder. Copy a team into your project, run `/bootstrap`, and start working. I built it for my own work and it's on its second version now. Sharing it in case it's useful, no expectations.
+It's configuration, not code: one `CLAUDE.md` and a `.claude/` folder. Copy `template/` into your project, run `/bootstrap`, and start working. I built it for my own work and it's on its second version now. Sharing it in case it's useful, no expectations.
 
 ## How it works
 
@@ -55,31 +55,27 @@ The agents apply them with judgment, not by rote. On a small lint cleanup I watc
 ```bash
 git clone https://github.com/Hub3r7/claude-code-orchestration-template.git
 
-TEAM=software-development   # or devops-sre / data-engineering / research-analysis
-cp claude-code-orchestration-template/teams/$TEAM/CLAUDE.md /path/to/your/project/
-cp -r claude-code-orchestration-template/teams/$TEAM/.claude /path/to/your/project/
-# optional: enable the safety hook
-cp .../teams/$TEAM/.claude/settings.template.json /path/to/your/project/.claude/settings.json
+cp claude-code-orchestration-template/template/CLAUDE.md /path/to/your/project/
+cp -r claude-code-orchestration-template/template/.claude /path/to/your/project/
+# optional but recommended: enable the hook suite + status line
+cp /path/to/your/project/.claude/settings.template.json /path/to/your/project/.claude/settings.json
 ```
 
 Then open Claude Code in your project and run `/bootstrap`. It asks about your project (stack, structure, conventions, what's sensitive), confirms what it understood, proposes a model for each agent and which skills to switch on, and then fills in every `[PROJECT-SPECIFIC]` section across the files. After that, tasks get classified and routed on their own.
 
-It needs Claude Code. It's built on Claude Code's sub-agent system (`.claude/agents/*.md` and `CLAUDE.md`), so it won't work with other AI tools or IDEs. Each team is self-contained, with no dependencies on the others.
+It needs Claude Code. It's built on Claude Code's sub-agent system (`.claude/agents/*.md` and `CLAUDE.md`), so it won't work with other AI tools or IDEs.
 
-## The teams
+## The team
 
-Four teams, same machinery — tiers, gates, handoffs, the hierarchy, bootstrap.
+One team, eleven agents. Seven run the chain: architect, ui-designer, developer, quality-gate, hunter (offensive security), defender (defensive security), docs. Four consultants sit outside the tiers — critic (fresh-eyes challenge), incident (production-failure perspective), optimizer (performance), researcher (cited web research for technology decisions) — read-only advisors any chain can pull in for a second opinion; they inform, they don't gate.
 
-- **software-development** — the one I actually use, and the only one with the engineering-skills layer. Seven chain agents: architect, ui-designer, developer, quality-gate, hunter (offensive security), defender (defensive security), docs. Plus three on-call consultants — critic (fresh-eyes challenge), incident (production-failure perspective), optimizer (performance) — read-only advisors any chain can pull in for a second opinion; they inform, they don't gate.
-- **devops-sre** — infrastructure and reliability work.
-- **data-engineering** — pipelines and data work.
-- **research-analysis** — non-code research, with a researcher, critic, and visualizer in place of developers.
+Earlier versions shipped four parallel teams (devops-sre, data-engineering and research-analysis alongside this one). Maintaining four copies of the machinery diluted the work into the copies nobody ran, so the template is now the one team I actually use; the retired three live at the git tag [`four-teams`](../../tree/four-teams) if you want them as adaptation references.
 
-To build your own, copy a team folder, rename the agents and adjust their roles, edit the tier table for your workflow, and update the bootstrap questions. Keep the core protocols — handoff, PASS/FAIL, the hierarchy, agent notes — and it holds together. None of this is specific to software.
+To adapt the template to another domain, rename the agents and adjust their roles, edit the tier table for your workflow, and update the bootstrap questions. Keep the core protocols — handoff, PASS/FAIL, the hierarchy, agent notes — and it holds together. None of this is specific to software.
 
 ## What to expect
 
-The software-development team is where the work went, and the part I trust. The other three share the same protocols but I've run them far less — expect to refine their agent instructions as you go. It's a personal project in active use, so it has rough edges. That's fine: it's a second version, not a finished product.
+It's a personal project in active use, so it has rough edges. That's fine: it's a working system, not a finished product.
 
 It spends tokens. Multi-agent review costs more than a single pass, and the skills layer adds more again. That's the trade for the depth — worth knowing before you point it at everything.
 

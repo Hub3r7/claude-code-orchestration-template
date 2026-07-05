@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Validate agent definitions across all teams.
+"""Validate agent definitions.
 
-Checks, for every `teams/*/.claude/agents/*.md`:
+Checks, for every `template/.claude/agents/*.md`:
   - frontmatter is present and parses as YAML
   - required keys exist (name, description, model, maxTurns, tools)
   - model is one of the supported tiers
@@ -21,7 +21,7 @@ import sys
 import yaml
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-AGENT_GLOB = os.path.join(REPO_ROOT, "teams", "*", ".claude", "agents", "*.md")
+AGENT_GLOB = os.path.join(REPO_ROOT, "template", ".claude", "agents", "*.md")
 
 REQUIRED_KEYS = ("name", "description", "model", "maxTurns", "tools")
 VALID_MODELS = {"opus", "sonnet", "haiku"}
@@ -112,7 +112,7 @@ def main() -> int:
             print(f"  - {err}", file=sys.stderr)
         return 1
 
-    print(f"Agent validation OK — {len(files)} agent files across all teams passed.")
+    print(f"Agent validation OK — {len(files)} agent files passed.")
     return 0
 
 

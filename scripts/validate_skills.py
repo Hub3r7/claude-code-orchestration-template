@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the vendored engineering-skills layer (software-development team).
+"""Validate the vendored engineering-skills layer.
 
 Checks:
   - every skill dir has a SKILL.md with name+description frontmatter, name == dirname
@@ -22,9 +22,7 @@ import sys
 import yaml
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SKILLS_DIR = os.path.join(
-    REPO_ROOT, "teams", "software-development", ".claude", "agent-skills"
-)
+SKILLS_DIR = os.path.join(REPO_ROOT, "template", ".claude", "agent-skills")
 
 
 def frontmatter(text: str):
