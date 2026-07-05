@@ -39,7 +39,14 @@ If the user's message is already in a specific language, match it and confirm: "
 
 ### Phase 1 — Project Discovery (orchestrator ↔ user)
 
-Ask the user about the project. Cover these topics (adapt phrasing naturally):
+**Before asking anything, survey the repository inline:** `Glob` the tree, `Read` the
+README, the manifests (package.json / pyproject.toml / go.mod / …), and the test layout.
+Use what you find to pre-fill your understanding and skip questions the repo already
+answers. **Do not spawn a subagent for the survey** — bootstrap runs in the main session;
+delegating the survey has failed in practice (malformed Task parameters) and costs more
+than it returns.
+
+Then ask the user about the project. Cover these topics (adapt phrasing naturally):
 
 1. **What is the project?** — Name, purpose, who is it for, what problem does it solve.
 2. **Tech stack** — Language(s), framework(s), runtime, package manager, database (if any).
@@ -63,6 +70,9 @@ architecture clarity, security agent for threat model assessment.
 - Not every agent needs to be consulted — only the ones relevant to the gap.
 - The agent provides domain-specific follow-up questions; the orchestrator relays them to the user.
 - The orchestrator remains the single point of contact with the user throughout.
+- When consulting an agent, call the Agent tool with exactly two inputs: `subagent_type`
+  (one of the team's agents, by name) and a plain-text prompt containing the questions.
+  Nothing else — malformed parameters are the most common bootstrap failure.
 
 ### Phase 2 — Confirmation
 
@@ -81,7 +91,12 @@ Security:       <key security considerations>
 Principles:     <project-specific non-negotiables>
 ```
 
-Ask: "Does this capture the project correctly? Anything to add or change?"
+Present the profile **as a normal assistant message first**, then ask: "Does this capture
+the project correctly? Anything to add or change?"
+
+If you ask for the confirmation through a question dialog (AskUserQuestion), embed the
+full profile block inside the question text itself — text emitted between tool calls may
+not be rendered in the console, and the user must see what they are confirming.
 
 ### Phase 3 — Model Assignment
 
@@ -166,7 +181,7 @@ Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sec
    - Environment section
    - What NOT to do (project-specific additions)
    - Current status
-   - Response language (the language determined in Phase 0 — write the language name in English, e.g. "Communicate with the user in Czech.")
+   - Response language (the language determined in Phase 0 — write the language name in English, e.g. "Communicate with the user in Spanish.")
    - The **active engineering skill set** from Phase 3b — record it in the "Engineering Skills" section (mark inactive skills and why).
 
 2. **`.claude/agents/architect.md`** — Add:
