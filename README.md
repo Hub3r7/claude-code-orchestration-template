@@ -18,19 +18,6 @@
  Tier 4    architect → quality-gate → developer → quality-gate → hunter ∥ defender → docs
 ```
 
-## Validation status
-
-Validated end-to-end on two real projects — a single-file CLI and a multi-module WordPress toolkit — plus a CI test suite for the hooks. Honest snapshot; the full ledger with checkboxes is in [ROADMAP.md](ROADMAP.md).
-
-- **Tiers 1–4** each ran on a real task. The two Tier 4 chains caught two real bugs, one a fail-open security check. **Tier 0** (the trivial path) has not yet been exercised as its own chain.
-- **Casebook** was seeded at bootstrap from a project's risk topology and matched the actual tier decisions the model made; the portable JSONL format is checked in CI.
-- **Hook suite** is covered by `scripts/test-hooks.sh`. The live run also surfaced and fixed a real hook bug — read-only agents' notes were being silently truncated — which is exactly the kind of defect a real project catches that a unit test missed.
-- **Bootstrap and `doctor.sh`** run clean on a fresh install.
-- **Not yet fully exercised live:** the circuit breaker (unit-tested, never hit 3 FAILs in a real run), in-flight resume/compaction re-orientation (wiring fires; the in-flight injection is only partially observed), and Tier 0.
-- **Looking for external validation** on repositories that aren't mine — see *Next validation targets* in the roadmap.
-
-Agent PASS verdicts are a review signal, not formal security assurance. This layer complements CI, human review, and security tooling; it does not replace them.
-
 ## How it works
 
 1. **Task in** — you describe a change.
@@ -78,7 +65,7 @@ The engineering doctrine — *how* to do each lifecycle phase well — is not mi
 - **Integration lives outside the vendored files.** Everything binding the skills to this framework is in one bridge file, `INTEGRATION.md`, plus a distilled ten-line *operating card* per skill — so the vendored `SKILL.md` files stay pristine and re-pull cleanly.
 - **Upstream drift is tracked.** A monthly CI job diffs the vendored copies against upstream and reports drift; the operating cards regenerate on refresh.
 
-This is a debt of gratitude, not an endorsement — Addy Osmani has not reviewed or endorsed this project.
+Credit to Addy Osmani for the doctrine layer this framework depends on. (This project is not affiliated with or endorsed by agent-skills.)
 
 **Two-tier read.** Each chain position maps to a lifecycle phase (define, plan, build, verify, review, ship) and operates under the skills for that phase — nothing "calls" a skill; being the developer in the build phase *means* working under TDD and incremental-implementation. Agents read the ten-line operating card every time and open the full doctrine only when a go-deep trigger fires, so depth is paid for when it matters. Bootstrap works out which skills your project actually needs — a CLI tool doesn't need browser-testing — and deactivates the rest.
 
@@ -94,13 +81,11 @@ The Claude Code ecosystem has converged on a thesis: the bottleneck is disciplin
 | gstack | Role-based scaffolding — bounded technical context for reasoning |
 | **This project** | **Control layer — routes by blast radius, enforces the protocol with hooks, logs evidence** |
 
-<!-- TODO(validation): the Superpowers/GSD/gstack rows summarize third-party projects from public write-ups (mid-2026); verify against each project's own README before relying on them in a comparison. -->
-
 ## When to use it — and when not
 
 **Use it when:** you run multi-agent work on a codebase and want risk-proportionate review; you want the protocol enforced rather than hoped for; you keep a durable, auditable record of what the review chain decided; or you want tier classification that learns your project's risk topology over time.
 
-**Don't reach for it when:** you want a single fast pass (the tiers add agents, which adds tokens); you need formal security assurance (agent PASS is a review signal, not a proof); you're not on Claude Code (it is built on its sub-agent system, hooks, and skills and won't work elsewhere); or the task is trivial and you'd rather just edit the file.
+**Don't reach for it when:** you want a single fast pass (the tiers add agents, which adds tokens); you need formal security assurance (an agent PASS is a review signal, not a proof); you're not on Claude Code (it is built on its sub-agent system, hooks, and skills and won't work elsewhere); or the task is trivial and you'd rather just edit the file.
 
 ## Quick start
 
@@ -118,13 +103,13 @@ cd /path/to/your/project && bash .claude/scripts/doctor.sh
 
 Requirements: Claude Code, and `jq` for the bash hooks; on Windows, run under WSL or Git Bash.
 
-**Recommended first validation path** — the fastest way to see whether it earns its keep:
+**Your first chain:**
 
 1. `bash .claude/scripts/doctor.sh` — confirm the install is healthy.
 2. `/bootstrap` — it profiles the project, proposes models and active skills, and seeds a starter casebook.
-3. Give it a **Tier 1** task (a small bug) — watch the chain manifest, the status line, and the verdict log.
-4. Give it a **deliberate Tier 3 or 4** task (something with external I/O or a security surface) — confirm it asks for approval first and runs the security agents.
-5. Inspect the evidence: `.agentNotes/chain-log.jsonl` and `.claude/docs/tier-casebook.md`. Run `/consolidate` to see the calibration report.
+3. Give it a small bug fix (a **Tier 1** task) — watch the chain manifest, the status line, and the verdict log.
+4. Give it something with external I/O or a security surface (a **Tier 3/4** task) — it will ask for approval first and run the security agents.
+5. Inspect the evidence: `.agentNotes/chain-log.jsonl` and `.claude/docs/tier-casebook.md`. Run `/consolidate` for the calibration report.
 
 The one-page [operator guide](template/.claude/docs/operator-guide.md) covers the daily commands, the status line, and what to do when a gate blocks something.
 
@@ -132,18 +117,17 @@ The one-page [operator guide](template/.claude/docs/operator-guide.md) covers th
 
 - `template/` — the product: the `CLAUDE.md` and `.claude/` you copy into your project
 - `scripts/` — the CI validators and the hook test suite
-- `ROADMAP.md` — the roadmap and verification ledger
 
 ## Adapting it
 
-The template ships as a single software-development team by design — one copy of the machinery that actually gets exercised. The earlier four-team layout (devops-sre, data-engineering, research-analysis) is preserved at the git tag [`four-teams`](../../tree/four-teams) as an adaptation reference. To adapt to another domain: rename the agents and adjust their roles, edit the tier table, update the bootstrap questions. The core protocols — handoff, PASS/FAIL, the knowledge hierarchy, agent notes — carry over unchanged; none are specific to software.
+The template ships as a single software-development team — one copy of the machinery, kept sharp. An earlier four-team layout (devops-sre, data-engineering, research-analysis) is preserved at the git tag [`four-teams`](../../tree/four-teams) as an adaptation reference. To adapt to another domain: rename the agents and adjust their roles, edit the tier table, update the bootstrap questions. The core protocols — handoff, PASS/FAIL, the knowledge hierarchy, agent notes — carry over unchanged; none are specific to software.
 
-## Trade-offs and limits
+## Trade-offs
 
-Multi-agent review costs more tokens than a single pass — that is the price of the depth. The tiers scale that price to the risk and the operating cards cut the fixed overhead, but a tier 4 chain is still seven agent runs. It is Claude Code-only, it is not a substitute for CI or human review or dedicated security tooling, and it needs more validation on projects that aren't mine. Open items, the full validation matrix, and known limits live in [ROADMAP.md](ROADMAP.md).
+Multi-agent review costs more tokens than a single pass — that is the price of the depth. The tiers scale that price to the risk and the operating cards cut the fixed overhead, but a tier 4 chain is still seven agent runs. It is Claude Code-only, and it complements CI, human review, and security tooling rather than replacing them.
 
 ## Credit and license
 
 The engineering skills are vendored byte-for-byte from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) by Addy Osmani, under the MIT license — full credit to that project for the doctrine layer, which this framework depends on. Everything else here is MIT as well; see [LICENSE](LICENSE).
 
-Feedback and external-validation reports are especially welcome: hub3r7@pm.me
+Feedback welcome: hub3r7@pm.me
