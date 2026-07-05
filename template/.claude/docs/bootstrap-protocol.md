@@ -37,6 +37,11 @@ Record the answer. Use that language for all conversation with the user througho
 
 If the user's message is already in a specific language, match it and confirm: "I'll communicate in [language]. All file content will be written in English."
 
+Per-user preferences like communication language belong in the user's own layer —
+`~/.claude/settings.json` (`"language"`) or a gitignored `CLAUDE.local.md` — never in
+the shared project files. If the user asks to persist such a preference, point them
+there; a teammate cloning the project must not inherit it.
+
 ### Phase 1 — Project Discovery (orchestrator ↔ user)
 
 **Before asking anything, survey the repository inline:** `Glob` the tree, `Read` the
@@ -251,3 +256,10 @@ If the project evolves significantly (new language, new architecture, major pivo
 - The user can say "re-bootstrap" to run the protocol again
 - Previous project-specific content is shown for comparison
 - Only changed sections are updated (preserve what still applies)
+
+## Troubleshooting the setup
+
+- Run `/memory` to verify which CLAUDE.md and `.claude/rules/` files actually loaded —
+  a rule that isn't listed there isn't in context.
+- For deeper debugging of path-scoped rules, register an `InstructionsLoaded` hook to
+  log exactly which instruction files load and when.

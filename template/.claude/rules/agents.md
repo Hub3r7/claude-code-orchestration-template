@@ -1,5 +1,6 @@
 ---
-globs: .claude/agents/*.md
+paths:
+  - ".claude/agents/**/*.md"
 ---
 
 # Agent file rules

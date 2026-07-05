@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Smoke tests for the PreToolUse/PostToolUse/SubagentStop/PostCompact hooks.
-# Verifies each hook blocks (exit 2) what it should and passes (exit 0) what it
-# shouldn't, and that the verdict hook maintains circuit-breaker state correctly.
+# Smoke tests for the hook suite (PreToolUse, PostToolUse, PostToolUseFailure,
+# SubagentStop, Stop, and the SessionStart/UserPromptSubmit/PostCompact
+# orientation events). Verifies each hook blocks (exit 2) what it should and
+# passes (exit 0) what it shouldn't, and that the verdict hook maintains
+# circuit-breaker state correctly.
 set -u
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -290,33 +292,110 @@ check 0 "$(run_scope_bash "python3 -m unittest > new-report.txt" "")" "redirect 
 check 0 "$(run_scope_bash "grep -n foo src/app.py" "")" "read-only shell command passes"
 check 0 "$(run_scope_bash "echo warn >&2 && git status 2>/dev/null" "")" "fd/devnull redirects pass"
 
-# ---------------------------------------------------------------------------
-# post-compact-orient.sh (PostCompact)
-# ---------------------------------------------------------------------------
-COMPACT_HOOK="$HOOKS_DIR/post-compact-orient.sh"
-echo "Hook: $COMPACT_HOOK"
+# Enforcement-layer carve-out: hooks/settings must go through Edit/Write so the
+# permissions ask-gate applies — shell writes are blocked even for NEW files.
+check 2 "$(run_scope_bash "echo x > .claude/hooks/new-hook.sh" "")" "shell write into .claude/hooks blocked (even new files)"
+check 2 "$(run_scope_bash "sed -i 's/a/b/' .claude/settings.json" "")" "shell edit of settings.json blocked"
+check 2 "$(run_scope_bash "cat x | tee .claude/settings.local.json" "")" "tee into settings.local.json blocked"
+check 0 "$(run_scope_bash "echo x > .claude/agents/foo.md" "")" "non-enforcement meta-config shell write passes"
 
-run_compact() {
-  jq -cn --arg c "$WORK" '{cwd:$c}' | bash "$COMPACT_HOOK" 2>/dev/null
+# ---------------------------------------------------------------------------
+# chain-orient.sh (SessionStart / UserPromptSubmit / PostCompact)
+# ---------------------------------------------------------------------------
+ORIENT_HOOK="$HOOKS_DIR/chain-orient.sh"
+echo "Hook: $ORIENT_HOOK"
+
+run_orient() {
+  # $1 = hook_event_name
+  jq -cn --arg c "$WORK" --arg e "$1" '{cwd:$c,hook_event_name:$e}' \
+    | bash "$ORIENT_HOOK" 2>/dev/null
 }
 
 rm -f "$STATE"
-if [ -n "$(run_compact)" ]; then
-  echo "  FAIL: post-compact emitted output with no chain state"; fail=1
-fi
+for ev in PostCompact SessionStart UserPromptSubmit; do
+  if [ -n "$(run_orient "$ev")" ]; then
+    echo "  FAIL: $ev emitted output with no chain state"; fail=1
+  fi
+done
 
 echo '{"task":"t","tier":3,"chain":["architect","developer","docs"],"done":["architect"],"fail_counts":{}}' > "$STATE"
-OUT="$(run_compact)"
+for ev in PostCompact SessionStart; do
+  OUT="$(run_orient "$ev")"
+  if ! printf '%s' "$OUT" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
+    echo "  FAIL: $ev did not emit additionalContext for an unfinished chain"; fail=1
+  elif ! printf '%s' "$OUT" | grep -q "architect"; then
+    echo "  FAIL: $ev context does not carry the manifest"; fail=1
+  elif [ "$(printf '%s' "$OUT" | jq -r '.hookSpecificOutput.hookEventName')" != "$ev" ]; then
+    echo "  FAIL: $ev echoed the wrong hookEventName"; fail=1
+  fi
+done
+
+OUT="$(run_orient UserPromptSubmit)"
 if ! printf '%s' "$OUT" | jq -e '.hookSpecificOutput.additionalContext' >/dev/null 2>&1; then
-  echo "  FAIL: post-compact did not emit additionalContext for an unfinished chain"; fail=1
-elif ! printf '%s' "$OUT" | grep -q "architect"; then
-  echo "  FAIL: post-compact context does not carry the manifest"; fail=1
+  echo "  FAIL: UserPromptSubmit did not emit a reminder for an unfinished chain"; fail=1
+elif ! printf '%s' "$OUT" | jq -r '.hookSpecificOutput.additionalContext' | grep -q "next: developer"; then
+  echo "  FAIL: UserPromptSubmit reminder does not name the next agent"; fail=1
+elif [ "$(printf '%s' "$OUT" | jq -r '.hookSpecificOutput.additionalContext' | wc -l | tr -d ' ')" != "1" ]; then
+  echo "  FAIL: UserPromptSubmit reminder is not a single line"; fail=1
 fi
 
 echo '{"task":"t","tier":1,"chain":["developer","docs"],"done":["developer","docs"],"fail_counts":{}}' > "$STATE"
-if [ -n "$(run_compact)" ]; then
-  echo "  FAIL: post-compact emitted output for a finished chain"; fail=1
-fi
+for ev in PostCompact SessionStart UserPromptSubmit; do
+  if [ -n "$(run_orient "$ev")" ]; then
+    echo "  FAIL: $ev emitted output for a finished chain"; fail=1
+  fi
+done
+
+# ---------------------------------------------------------------------------
+# stop-chain-guard.sh (Stop)
+# ---------------------------------------------------------------------------
+STOP_HOOK="$HOOKS_DIR/stop-chain-guard.sh"
+echo "Hook: $STOP_HOOK"
+
+run_stop() {
+  # $1 = stop_hook_active
+  jq -cn --arg c "$WORK" --argjson s "$1" '{cwd:$c,stop_hook_active:$s}' \
+    | bash "$STOP_HOOK" >/dev/null 2>&1
+  echo $?
+}
+
+rm -f "$STATE"
+check 0 "$(run_stop false)" "no chain state → stop passes"
+
+echo '{"task":"t","tier":2,"chain":["architect","quality-gate","developer","quality-gate","docs"],"done":["architect"],"fail_counts":{}}' > "$STATE"
+check 2 "$(run_stop false)" "unfinished chain blocks the first stop"
+check 0 "$(run_stop true)" "stop_hook_active lets the second stop through (no loop)"
+
+echo '{"task":"t","tier":2,"chain":["architect","developer"],"done":["architect"],"fail_counts":{"quality-gate":3}}' > "$STATE"
+check 0 "$(run_stop false)" "tripped circuit breaker exempts the escalation pause"
+
+echo '{"task":"t","tier":1,"chain":["developer","docs"],"done":["developer","docs"],"fail_counts":{}}' > "$STATE"
+check 0 "$(run_stop false)" "finished chain → stop passes"
+
+echo 'not json' > "$STATE"
+check 0 "$(run_stop false)" "malformed manifest never blocks a stop"
+
+# ---------------------------------------------------------------------------
+# tool-failure-log.sh (PostToolUseFailure on Agent/Task)
+# ---------------------------------------------------------------------------
+FAILLOG_HOOK="$HOOKS_DIR/tool-failure-log.sh"
+echo "Hook: $FAILLOG_HOOK"
+
+run_faillog() {
+  # $1 = tool_name, $2 = subagent_type, $3 = error text
+  jq -cn --arg n "$1" --arg s "$2" --arg e "$3" --arg c "$WORK" \
+    '{tool_name:$n,tool_input:{subagent_type:$s},cwd:$c,error:$e}' \
+    | bash "$FAILLOG_HOOK" >/dev/null 2>&1
+  echo $?
+}
+
+LOG_BEFORE="$(wc -l < "$LOG" | tr -d ' ')"
+check 0 "$(run_faillog Agent developer "InputValidationError: unexpected field")" "agent failure logged"
+check "$((LOG_BEFORE + 1))" "$(wc -l < "$LOG" | tr -d ' ')" "failure appended one log line"
+check tool_failure "$(tail -1 "$LOG" | jq -r .event)" "failure line carries the event type"
+check developer "$(tail -1 "$LOG" | jq -r .agent)" "failure line carries the agent"
+check 0 "$(run_faillog Bash developer "boom")" "non-Agent failure ignored"
+check "$((LOG_BEFORE + 1))" "$(wc -l < "$LOG" | tr -d ' ')" "non-Agent failure not logged"
 
 # ---------------------------------------------------------------------------
 # statusline-chain.sh

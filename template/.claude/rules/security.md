@@ -1,5 +1,9 @@
 ---
-globs: "**/*.{env,key,pem,secret,credentials}*"
+paths:
+  - "**/*.env*"
+  - "**/*.{key,pem}"
+  - "**/*secret*"
+  - "**/*credentials*"
 ---
 
 # Sensitive file rules

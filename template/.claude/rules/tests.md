@@ -1,5 +1,9 @@
 ---
-globs: tests/**/*
+paths:
+  - "tests/**"
+  - "test/**"
+  - "**/*.{test,spec}.*"
+  - "**/test_*"
 ---
 
 # Test file rules

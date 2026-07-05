@@ -112,6 +112,21 @@ feature, NOT in the Claude Code CLI.
 4. If the CLI ever ships a native structured verdict channel, kill the verdict regex
    in `gate-verdict-check.sh` in its favor.
 
+### B8. Subagent native memory — EVALUATE (during the next real project week)
+**Why:** subagents support persistent memory natively (`memory: user|project|local`
+frontmatter, GA v2.1.59) — overlapping `.agentNotes` + `notes-persist.sh`. Do NOT
+swap blindly: native memory is machine-local and lives outside the repo, while
+`.agentNotes` is in-repo, protocol-capped, and feeds `/consolidate`.
+1. Enable `memory: project` on ONE consultant (critic) alongside the existing notes.
+2. After a week of real use compare: what native memory retained vs the hook-written
+   notes; whether `/consolidate` can reach it; whether the 200-line discipline holds.
+3. Decide adopt / complement / reject — record the evidence here either way.
+
+**Optional refactor (no urgency):** agent frontmatter supports per-agent `hooks` —
+the verdict check could move from global settings into the three gate agents' own
+files (self-contained definitions). Same behavior, nicer packaging; do it
+opportunistically when those agents are next touched.
+
 ## Explicit non-goals
 - LangGraph or any external runtime — wrong layer; deterministic chains, if ever needed,
   go through Claude Code's native workflow scripts.
@@ -119,3 +134,10 @@ feature, NOT in the Claude Code CLI.
   manifest, casebook) is deliberate; invest in consolidation (B1), not storage.
 - Resurrecting the retired teams (devops-sre, data-engineering, research-analysis) —
   they live at the `four-teams` git tag; adapt the single template instead.
+- Agent `skills:` preloading — it injects full skill content at spawn; the operating
+  cards' two-tier read exists precisely to avoid paying that on every invocation.
+- CLAUDE.md `@imports` — imported files load at launch anyway: same tokens, more churn.
+- `type: "agent"` hooks and other experimental hook surface — same rule as Agent
+  Teams (B7): adapters wait for GA.
+- Per-agent `isolation: worktree` defaults — worktree isolation stays an orchestrator
+  judgment call for high-blast-radius Tier 3-4 work.

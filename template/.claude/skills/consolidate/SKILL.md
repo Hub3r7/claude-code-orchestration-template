@@ -1,6 +1,7 @@
 ---
 name: consolidate
 description: Periodic maintenance — evidence report from the chain log plus promotion of recurring agent-notes findings into project rules and the tier casebook. Run weekly or after a heavy chain. Proposes changes only; never applies without approval.
+context: fork
 allowed-tools: Read, Grep, Glob
 ---
 
@@ -17,6 +18,8 @@ change is presented for user approval first.
    - which FAILs led to real fixes (cross-check recent git log) vs. re-review noise
    - any gate that never caught anything — a signal to recalibrate the tier upgrade
      rules or slim that chain position
+   - tool-failure clusters (`"event": "tool_failure"` lines) — repeated failed agent
+     invocations signal a protocol or agent-definition gap, not bad luck
 2. **Knowledge promotion.** Read every `.agentNotes/*/notes.md`:
    - a finding recurring 3+ times → propose a rule for `docs/project-rules.md`
      (prevention beats repeated catching)

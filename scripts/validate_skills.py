@@ -105,7 +105,32 @@ def main() -> int:
         for ghost in sorted(card_names - skill_names):
             errors.append(f"cards/{ghost}.md: no matching vendored skill")
 
-    # 5. README mapping consistency (both directions)
+    # 5. Project rules (.claude/rules/*.md): path-scoped rules must use the
+    # official `paths` frontmatter key — an unrecognized key (e.g. `globs`)
+    # is ignored by Claude Code and silently makes the rule load always.
+    rules_dir = os.path.join(REPO_ROOT, "template", ".claude", "rules")
+    if os.path.isdir(rules_dir):
+        for path in sorted(
+            glob.glob(os.path.join(rules_dir, "**", "*.md"), recursive=True)
+        ):
+            rel = os.path.relpath(path, REPO_ROOT)
+            with open(path, encoding="utf-8") as fh:
+                fm = frontmatter(fh.read())
+            if fm is None:
+                continue  # no frontmatter → unconditionally loaded rule, valid
+            if not isinstance(fm, dict):
+                errors.append(f"{rel}: invalid frontmatter")
+                continue
+            for key in fm:
+                if key != "paths":
+                    hint = " (the official key is `paths`)" if key == "globs" else ""
+                    errors.append(
+                        f"{rel}: unknown rules frontmatter key '{key}'{hint}"
+                    )
+            if "paths" in fm and not isinstance(fm["paths"], list):
+                errors.append(f"{rel}: `paths` must be a YAML list of glob patterns")
+
+    # 6. README mapping consistency (both directions)
     if os.path.isfile(readme):
         with open(readme, encoding="utf-8") as fh:
             readme_text = fh.read()

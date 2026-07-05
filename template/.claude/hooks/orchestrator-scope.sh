@@ -79,6 +79,17 @@ for t in $CANDIDATES; do
   case "$t" in
     "&"*|/dev/*) continue ;; # fd duplication (>&2), device sinks
   esac
+  # Enforcement layer: hooks and settings changes must go through Edit/Write so
+  # the permissions ask-gate applies — shell writes would skip it. Blocked even
+  # for new files. Residual, accepted: a subagent with Bash is exempt above;
+  # hooks are snapshotted at session start, so mid-session edits don't apply.
+  REL_ENF="$t"
+  case "$t" in "$CWD"/*) REL_ENF="${t#"$CWD"/}" ;; esac
+  case "$REL_ENF" in
+    .claude/hooks/*|.claude/settings.json|.claude/settings.*.json|.claude/settings.template.json)
+      echo "Enforcement layer: '$REL_ENF' must be changed via Edit/Write so the permissions ask-gate applies — not via shell writes." >&2
+      exit 2 ;;
+  esac
   if ! path_allowed "$t"; then
     # Only block writes to files that already exist in the project —
     # scratch output to a new file stays allowed.

@@ -35,3 +35,19 @@ Relevant metrics:
 | `claude_code.session.count` | Sessions started |
 
 Docs: https://code.claude.com/docs/en/monitoring-usage
+
+## Cost knobs (settings.json)
+
+User-level settings that cap spend before any chain runs. Set them in
+`~/.claude/settings.json` or a project's `settings.local.json` — the template
+deliberately ships none of them, they are per-user policy:
+
+| Key | Effect |
+|-----|--------|
+| `model` | Default main-loop model (e.g. `sonnet`) |
+| `effortLevel` | Persist a session effort level (`low`–`xhigh`) |
+| `availableModels` + `enforceAvailableModels` | Restrict which models can be selected at all |
+| `alwaysThinkingEnabled` | Extended thinking on every turn — leave off to save tokens |
+| `fallbackModel` | Fallback when the primary model is unavailable |
+
+Docs: https://code.claude.com/docs/en/settings

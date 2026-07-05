@@ -1,6 +1,7 @@
 ---
 name: deep-analysis
 description: Deep analysis of project structure, logic, patterns, and dependencies. Use when the user wants a thorough understanding of how the project works, its architecture, or specific subsystems.
+context: fork
 allowed-tools: Read, Grep, Glob, Agent
 ---
 

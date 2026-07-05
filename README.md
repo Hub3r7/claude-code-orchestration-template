@@ -36,11 +36,12 @@ Earlier versions asked the model to follow the protocol and hoped. This version 
 - **The circuit breaker is physical.** After three FAILs on the same gate, the next re-review is blocked outright — the orchestrator has to escalate to you; it can't quietly keep looping.
 - **Reviewers can't touch code.** `disallowedTools` keeps every gate and consultant read-only, down to shell redirects.
 - **The orchestrator can't either.** A hook blocks main-session writes outside meta-configuration — including the common shell write forms (redirection, `tee`, `sed -i`) against existing project files. Code goes through the developer, or it doesn't go.
-- **Chains survive long sessions.** A chain manifest holds tier, plan, and position; after a context compaction a hook re-injects it, so an in-flight chain resumes mechanically instead of being reconstructed from memory.
+- **Chains survive long sessions.** A chain manifest holds tier, plan, and position; after a context compaction, a session restart, or `/resume`, a hook re-injects it, so an in-flight chain resumes mechanically instead of being reconstructed from memory.
+- **Turns don't end mid-chain silently.** A stop guard refuses the orchestrator's first attempt to end its turn with an unfinished chain — it must continue, hand the decision to you, or abandon the chain explicitly. Circuit-breaker escalations pass through.
 - **One semantic check.** A prompt hook on the small, cheap model verifies what regex can't: that a FAIL carries a numbered fix list and a PASS handoff carries acceptance criteria.
 - **Destructive git is stopped twice.** A regex hook catches force pushes, `reset --hard`, `clean -f`, and `rm -rf` including the short and combined flag forms; underneath it, `permissions.deny` rules and Claude Code's OS sandbox add a categorical layer where the platform supports it.
 
-The mechanical parts are covered by a CI test suite, and the whole thing was validated end-to-end in a live project run — which doubled as a red-team: the model proposed routing around the write boundary through the shell ("the hook only watches Edit/Write"), and that path was closed the same day. The status line shows the live chain — `T3 ▸ 2/6 ▸ next: developer ▸ FAIL quality-gate:1` — straight from the manifest, at zero token cost.
+The mechanical parts are covered by a CI test suite, and the whole thing was validated end-to-end in a live project run — which doubled as a red-team: the model proposed routing around the write boundary through the shell ("the hook only watches Edit/Write"), and that path was closed the same day. The default posture is auto mode inside Claude Code's OS sandbox, with the enforcement layer itself behind an approval gate: edits to the hooks or settings prompt for human confirmation. The status line shows the live chain — `T3 ▸ 2/6 ▸ next: developer ▸ FAIL quality-gate:1` — straight from the manifest, at zero token cost.
 
 ## The team
 

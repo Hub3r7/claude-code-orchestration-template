@@ -1,5 +1,6 @@
 {
   "permissions": {
+    "defaultMode": "auto",
     "deny": [
       "Bash(git push --force*)",
       "Bash(git push -f*)",
@@ -7,6 +8,12 @@
       "Bash(git clean -f*)",
       "Bash(git branch -D*)",
       "Bash(rm -rf *)"
+    ],
+    "ask": [
+      "Edit(.claude/hooks/**)",
+      "Write(.claude/hooks/**)",
+      "Edit(.claude/settings*.json)",
+      "Write(.claude/settings*.json)"
     ]
   },
   "sandbox": {
@@ -18,17 +25,41 @@
     "command": ".claude/hooks/statusline-chain.sh"
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/chain-orient.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/chain-orient.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/block-destructive-git.sh"
+            "command": ".claude/hooks/block-destructive-git.sh",
+            "timeout": 15
           },
           {
             "type": "command",
-            "command": ".claude/hooks/orchestrator-scope.sh"
+            "command": ".claude/hooks/orchestrator-scope.sh",
+            "timeout": 15
           }
         ]
       },
@@ -37,7 +68,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/chain-circuit-breaker.sh"
+            "command": ".claude/hooks/chain-circuit-breaker.sh",
+            "timeout": 15
           }
         ]
       },
@@ -46,7 +78,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/orchestrator-scope.sh"
+            "command": ".claude/hooks/orchestrator-scope.sh",
+            "timeout": 15
           }
         ]
       }
@@ -57,22 +90,26 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/notes-persist.sh"
+            "command": ".claude/hooks/notes-persist.sh",
+            "timeout": 15
           },
           {
             "type": "prompt",
             "prompt": "Hook input: $ARGUMENTS\n\nA subagent just completed inside a tiered review chain. If tool_input.subagent_type is NOT one of quality-gate, hunter, defender, answer ok=true immediately. Otherwise check the subagent's output (tool_response) against the loop-back protocol: (1) a 'VERDICT: FAIL' must come with a numbered remediation list and must name the agent the work returns to; (2) a 'VERDICT: PASS' that includes a HANDOFF section must include acceptance criteria in it; (3) an output with neither a VERDICT nor a '## BLOCKED' section is a violation. Answer ok=false with one sentence naming exactly what is missing (so the orchestrator can send the agent back); otherwise ok=true.",
-            "continueOnBlock": true
+            "continueOnBlock": true,
+            "statusMessage": "Checking chain protocol"
           }
         ]
       }
     ],
-    "PostCompact": [
+    "PostToolUseFailure": [
       {
+        "matcher": "Agent|Task",
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/post-compact-orient.sh"
+            "command": ".claude/hooks/tool-failure-log.sh",
+            "timeout": 15
           }
         ]
       }
@@ -83,7 +120,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/gate-verdict-check.sh"
+            "command": ".claude/hooks/gate-verdict-check.sh",
+            "timeout": 15,
+            "statusMessage": "Checking gate verdict"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/stop-chain-guard.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/chain-orient.sh",
+            "timeout": 15
           }
         ]
       }
