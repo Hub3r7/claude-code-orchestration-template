@@ -4,51 +4,53 @@
 
 # Claude Code Orchestration Template
 
-The orchestrator reads each task, rates how much it could break on a scale of 0 to 4, and routes it through the matching chain of agents. A typo runs one agent. A new security-critical component runs the whole chain: design, code review, an offensive and a defensive security pass, then docs. The higher the tier, the longer the chain.
+The orchestrator reads each task, rates how much it could break on a scale of 0 to 4, and routes it through the matching chain of agents. A typo runs one agent. A new security-critical component runs the whole chain: design, two review gates, offensive and defensive security in parallel, then docs. The higher the tier, the longer the chain.
 
 ```
  Tier 0    developer → docs
  Tier 1    developer → quality-gate → docs
  Tier 2    architect → quality-gate → developer → quality-gate → docs
  Tier 3    architect → quality-gate → developer → quality-gate → hunter / defender → docs
- Tier 4    architect → quality-gate → developer → quality-gate → hunter → defender → docs
+ Tier 4    architect → quality-gate → developer → quality-gate → hunter ∥ defender → docs
 ```
 
-It's configuration, not code: one `CLAUDE.md` and a `.claude/` folder. Copy `template/` into your project, run `/bootstrap`, and start working. I built it for my own work and it's on its second version now. Sharing it in case it's useful, no expectations.
+It's configuration, not code: one `CLAUDE.md` and a `.claude/` folder. Copy `template/` into your project, run `/bootstrap`, and start working. I built it for my own work and this is the third version. Sharing it in case it's useful, no expectations.
 
-## How it works
+## The judgment layer
 
-Running several agents on a codebase is the easy part. The judgment is the hard part: not wrapping a one-line fix in ceremony it doesn't need, and not letting a risky change through without the review it does. The template encodes that as rules that don't bend.
+Running several agents on a codebase is the easy part. The judgment is the hard part: not wrapping a one-line fix in ceremony it doesn't need, and not letting a risky change through without the review it does.
 
-The tier follows the risk. New files push a task to at least tier 2, external I/O or a new security surface to tier 3, a new major component or anything security-critical to tier 4. When the orchestrator is unsure between two, it picks the higher one. docs always runs last.
+The tier follows the risk. New files push a task to at least tier 2, external I/O or a new security surface to tier 3, a new major component or anything security-critical to tier 4. When the orchestrator is unsure between two, it picks the higher one. Borderline cases are calibrated by a casebook of worked examples — and every time you correct a tier decision, the case is appended, so classification converges on your project's instincts instead of drifting.
 
-From there, a few things hold the chain together.
+## Enforced, not promised
 
-Review agents return a verdict, PASS or FAIL. FAIL stops the chain and sends the work back with a numbered fix list. Three failures on the same gate trip a circuit breaker that escalates to you instead of looping — repeated failures mean the spec or the design is wrong, not the code.
+Earlier versions asked the model to follow the protocol and hoped. This version makes the protocol mechanical — a hook suite ships in `settings.template.json`:
 
-Review agents are read-only. They carry `disallowedTools: [Edit, Write, Bash]`, so they can't touch the code they're reviewing, not even through a shell redirect. They report findings; they don't patch them.
+- **Verdicts are mandatory.** A review agent cannot finish without an explicit PASS/FAIL verdict or a declared BLOCKED state. Every verdict is recorded.
+- **The circuit breaker is physical.** After three FAILs on the same gate, the next re-review is blocked outright — the orchestrator has to escalate to you; it can't quietly keep looping.
+- **Reviewers can't touch code.** `disallowedTools` keeps every gate and consultant read-only, down to shell redirects.
+- **The orchestrator can't either.** A hook blocks main-session writes outside meta-configuration — code goes through the developer, or it doesn't go.
+- **Chains survive long sessions.** A chain manifest holds tier, plan, and position; after a context compaction a hook re-injects it, so an in-flight chain resumes mechanically instead of being reconstructed from memory.
+- **One semantic check.** A prompt hook on the small, cheap model verifies what regex can't: that a FAIL carries a numbered fix list and a PASS handoff carries acceptance criteria.
+- **Destructive git is stopped twice.** A regex hook catches force pushes, `reset --hard`, `clean -f`, and `rm -rf` including the short and combined flag forms; underneath it, `permissions.deny` rules and Claude Code's OS sandbox add a categorical layer where the platform supports it.
 
-Agents load their own rules. The orchestrator passes only the task: what, why, scope, and the handoff from the previous agent. Never project conventions, never `CLAUDE.md`. Each agent reads those itself, every time. Stale context can't leak between steps, and the prompts stay lean.
+The mechanical parts are covered by a CI test suite. The status line shows the live chain — `T3 ▸ 2/6 ▸ next: developer ▸ FAIL quality-gate:1` — straight from the manifest, at zero token cost.
 
-The knowledge hierarchy is strict. `CLAUDE.md` and agent instructions beat project docs, which beat the engineering skills, which beat an agent's private notes. Every conflict resolves the same way.
+## The team
 
-Agents keep working notes in `.agentNotes/`, never committed. Read-only agents can't write their own, so they emit a notes section and the orchestrator persists it for them.
+Eleven agents. Seven run the chain: architect, ui-designer, developer, quality-gate, hunter (offensive security), defender (defensive security), docs. Four consultants sit outside the tiers: critic (fresh-eyes challenge to designs and reasoning), incident (production-failure perspective, live-incident triage and postmortems), optimizer (performance deep-dives), researcher (cited web research for technology decisions). Consultants inform, they don't gate — no verdicts, read-only, pulled in when a chain or you wants a second perspective.
 
-Six slash commands cover the routine work: `/bootstrap`, `/tier-check`, `/commit`, `/push`, `/re-review`, `/deep-analysis`. For token and cost numbers use Claude Code's own `/usage`, or the OTEL telemetry setup in `.claude/docs/telemetry.md` — earlier versions had a `/chain-metrics` skill that estimated these, but estimated metrics dressed up as measurements are worse than none.
+Costs default sane: the developer runs on Sonnet (the orchestrator may one-off override to Opus for genuinely complex tier 3-4 work, and says so), the routine gate reviews at medium effort, the security agents stay at high. Bootstrap asks before raising any of it.
 
-A safety hook blocks destructive git before it runs. The PreToolUse hook catches force pushes (including the short `-f` and refspec forms), `reset --hard`, `clean -f`, and `rm -rf`. Its block-and-pass list is checked in CI, alongside the agent definitions and the skills layer.
+## Engineering skills, read in two tiers
 
-In the software-development team, a hook suite turns the review protocol from instructions into mechanics. A SubagentStop hook refuses to let a review agent finish without an explicit PASS/FAIL verdict (or a declared BLOCKED state), and counts FAILs per gate. A PreToolUse hook on agent spawning enforces the circuit breaker: after three FAILs on the same gate, the next re-review is blocked outright — the orchestrator has to escalate to you, it can't quietly keep looping. A second PreToolUse hook keeps the orchestrator itself out of project files — code goes through the developer, or it doesn't go. A PostCompact hook re-injects the chain manifest after context compaction, so a chain in flight survives long sessions. And one prompt-based hook (running on the small, cheap model) checks what regex can't: that a FAIL actually carries a numbered fix list and a PASS handoff carries acceptance criteria. Everything mechanical is covered by the same CI test suite as the git hook.
+Each chain position maps to an engineering-lifecycle phase — define, plan, build, verify, review, ship — and each phase carries the practices that belong to it. The developer works under test-driven and incremental-implementation doctrine, the quality gate under code-review and simplification, the security agents under hardening. Nothing "calls" a skill: being the developer in the build phase means operating under those practices. The tier sets how many phases run, so it also sets how much doctrine applies.
 
-The template also ships a status line: while a chain runs, the terminal footer shows `T3 ▸ 2/6 ▸ next: developer ▸ FAIL quality-gate:1` — live orchestration state, straight from the chain manifest, at zero token cost.
+The practices are 23 skill files vendored byte-for-byte from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) (MIT), so upstream updates re-pull cleanly — a monthly CI job watches for drift. Everything binding them to this framework lives in one bridge file, `INTEGRATION.md`. Each skill also carries a distilled ten-line **operating card**: agents read the card every time and open the full doctrine only when the card says to go deep. Depth is paid for when it matters, not on every invocation. Bootstrap works out which skills your project actually needs — a CLI tool doesn't need browser-testing — and deactivates the rest.
 
-## Engineering skills (software-development team)
+## Evidence over vibes
 
-The software-development team adds a second layer on top of the chain. The chain already maps onto the engineering lifecycle — define, plan, build, verify, review, ship — so each agent runs under the practices that belong to its step. The developer works under test-driven and incremental-implementation doctrine; the quality gate under code-review and simplification; the security agents under hardening. Nothing "calls" a skill: being the developer in the build phase means operating under those practices. The tier sets how many phases run, so it also sets how much doctrine applies.
-
-These practices are 23 skill files vendored from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) (MIT), kept byte-for-byte identical to upstream so updates re-pull cleanly. Everything that binds them to this framework lives in one bridge file, `INTEGRATION.md`. Each skill also carries a distilled operating card the agents read every time — the full doctrine is opened only when the card says to go deep, so the depth is paid for when it matters, not on every invocation. Bootstrap works out which skills your project actually needs — a CLI tool doesn't need browser-testing — and drops the rest.
-
-The agents apply them with judgment, not by rote. On a small lint cleanup I watched the developer skip TDD on its own and say why, quoting the skill's own "when not to use". The doctrine doesn't bury small tasks in process.
+Every gate verdict lands in an append-only log. Run `/consolidate` weekly: it reports whether the gates actually catch things — and whether a tier's ceremony earns its cost — and proposes promotions: a finding caught three times becomes a rule in your project conventions, so it stops happening instead of being caught again. For spend, use Claude Code's `/usage` or the OTEL setup in `.claude/docs/telemetry.md`. The template deliberately reports no metrics of its own — earlier versions had a skill that estimated them, and estimated metrics dressed up as measurements are worse than none.
 
 ## Quick start
 
@@ -57,27 +59,21 @@ git clone https://github.com/Hub3r7/claude-code-orchestration-template.git
 
 cp claude-code-orchestration-template/template/CLAUDE.md /path/to/your/project/
 cp -r claude-code-orchestration-template/template/.claude /path/to/your/project/
-# optional but recommended: enable the hook suite + status line
+# recommended: enable the hook suite, sandbox, and status line
 cp /path/to/your/project/.claude/settings.template.json /path/to/your/project/.claude/settings.json
 ```
 
-Then open Claude Code in your project and run `/bootstrap`. It asks about your project (stack, structure, conventions, what's sensitive), confirms what it understood, proposes a model for each agent and which skills to switch on, and then fills in every `[PROJECT-SPECIFIC]` section across the files. After that, tasks get classified and routed on their own.
+Then open Claude Code in your project and run `/bootstrap`. It asks about your project (stack, structure, conventions, what's sensitive), confirms what it understood, proposes a model for each agent and which skills to switch on, and fills in every `[PROJECT-SPECIFIC]` section. After that, tasks get classified and routed on their own.
 
-It needs Claude Code. It's built on Claude Code's sub-agent system (`.claude/agents/*.md` and `CLAUDE.md`), so it won't work with other AI tools or IDEs.
+It needs Claude Code — it's built on its sub-agent system, hooks, and skills, so it won't work with other AI tools or IDEs. The hooks need `jq`.
 
-## The team
+## Adapting it
 
-One team, eleven agents. Seven run the chain: architect, ui-designer, developer, quality-gate, hunter (offensive security), defender (defensive security), docs. Four consultants sit outside the tiers — critic (fresh-eyes challenge), incident (production-failure perspective), optimizer (performance), researcher (cited web research for technology decisions) — read-only advisors any chain can pull in for a second opinion; they inform, they don't gate.
-
-Earlier versions shipped four parallel teams (devops-sre, data-engineering and research-analysis alongside this one). Maintaining four copies of the machinery diluted the work into the copies nobody ran, so the template is now the one team I actually use; the retired three live at the git tag [`four-teams`](../../tree/four-teams) if you want them as adaptation references.
-
-To adapt the template to another domain, rename the agents and adjust their roles, edit the tier table for your workflow, and update the bootstrap questions. Keep the core protocols — handoff, PASS/FAIL, the hierarchy, agent notes — and it holds together. None of this is specific to software.
+Earlier versions shipped four parallel teams; maintaining four copies of the machinery diluted the work into copies nobody ran, so the template is now the one team I actually use. The retired three (devops-sre, data-engineering, research-analysis) live at the git tag [`four-teams`](../../tree/four-teams) as adaptation references. To adapt to another domain: rename the agents and adjust their roles, edit the tier table for your workflow, update the bootstrap questions. Keep the core protocols — handoff, PASS/FAIL, the hierarchy, agent notes — and it holds together. None of this is specific to software.
 
 ## What to expect
 
-It's a personal project in active use, so it has rough edges. That's fine: it's a working system, not a finished product.
-
-It spends tokens. Multi-agent review costs more than a single pass, and the skills layer adds more again. That's the trade for the depth — worth knowing before you point it at everything.
+A personal project in active use — rough edges included. It spends tokens: multi-agent review costs more than a single pass. The tiers scale that cost to the risk and the operating cards cut the fixed overhead, but a tier 4 chain is still seven agent runs — that's the trade for the depth. Open items, pending verifications, and deliberate non-goals live in [ROADMAP.md](ROADMAP.md).
 
 ## Credit and license
 
