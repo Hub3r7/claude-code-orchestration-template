@@ -162,7 +162,7 @@ Three more rings complete the enforcement: `orchestrator-scope.sh` (PreToolUse) 
 
 **UI chain insertion:** When a Tier 2-4 task involves UI changes, insert ui-designer after architect and before quality-gate (e.g., architect → ui-designer → quality-gate → developer → ...).
 
-**Tier upgrade rules:** New major component or security-sensitive operations (auth, crypto) → Tier 4. External network requests, persistent artifacts, or shared/core code changes → at least Tier 3. New files → at least Tier 2. When in doubt, upgrade. **Calibration:** when the tier is not obvious, consult `.claude/docs/tier-casebook.md` — worked examples beat rules on borderline cases. Whenever the user corrects a tier decision, append that case to the casebook.
+**Tier upgrade rules:** New major component or security-sensitive operations (auth, crypto) → Tier 4. External network requests, persistent artifacts, or shared/core code changes → at least Tier 3. New files → at least Tier 2. When in doubt, upgrade. **Calibration:** when the tier is not obvious, consult `.claude/docs/tier-casebook.md` — worked examples beat rules on borderline cases. Whenever the user corrects a tier decision, append that case to the casebook — both the markdown row and its `tier-casebook.jsonl` record (`casebook-format.md` defines the schema).
 
 **Worktree isolation:** For Tier 3-4 changes with high blast radius, the orchestrator MAY invoke developer with `isolation: "worktree"` to work on an isolated git copy. The worktree is auto-cleaned if no changes are made.
 

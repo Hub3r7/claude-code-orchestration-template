@@ -84,6 +84,34 @@ the cards landed, tighten the go-deep triggers in the affected cards.
    report drift (the refresh itself stays manual — cards must be regenerated with it,
    see `INTEGRATION.md` bridge 6).
 
+### B6. Casebook as a portable format — DONE 2026-07-05
+**Why:** external review (July 2026): the casebook is a learning blast-radius
+classifier written in markdown; a defined record schema makes casebooks shareable
+across projects, aggregatable, and eval-ready. Each case now exists twice: a
+human-readable row in `tier-casebook.md` (what the orchestrator reads) and a
+machine-readable record in `tier-casebook.jsonl` (the interchange format — schema in
+`casebook-format.md`; the change characteristics mirror the tier upgrade rules 1:1).
+`scripts/validate_casebook.py` keeps the pair in sync in CI.
+
+### B7. Agent Teams adapter — CONDITIONAL (start when Agent Teams leaves the experimental flag, or at first real Teams use)
+**Why:** external review (July 2026): "risk-tiered autonomy for parallel agent teams"
+— translate tiers from *which sequential chain runs* to *how much autonomy a teammate
+gets*. Platform facts verified 2026-07-05: Agent Teams is experimental behind
+`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, has no session resumption, and costs
+significantly more tokens; `TaskCompleted`/`TeammateIdle` hooks exist (exit-2
+blocking) but fire only inside Agent Teams; Outcomes rubrics are a Managed Agents API
+feature, NOT in the Claude Code CLI.
+1. Map tiers to autonomy levels: Tier 0-1 = teammate acts alone; Tier 2 =
+   quality-gate review before merge; Tier 3-4 = gate + human approval on every merge.
+2. Implement as a `TaskCompleted` exit-2 hook reading the tier from the chain
+   manifest — in teams mode this replaces transcript-grep as the verdict substrate.
+3. Keep the sequential chain + SubagentStop suite as the stable core: it runs on
+   stock Claude Code with no flags (a distribution advantage), and the chain manifest
+   keeps doing what Dreaming does not (in-flight chain state, FAIL counters,
+   statusline, PostCompact re-injection).
+4. If the CLI ever ships a native structured verdict channel, kill the verdict regex
+   in `gate-verdict-check.sh` in its favor.
+
 ## Explicit non-goals
 - LangGraph or any external runtime — wrong layer; deterministic chains, if ever needed,
   go through Claude Code's native workflow scripts.

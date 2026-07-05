@@ -21,7 +21,8 @@ change is presented for user approval first.
    - a finding recurring 3+ times → propose a rule for `docs/project-rules.md`
      (prevention beats repeated catching)
    - a tier misjudgment the user corrected → propose a row for
-     `.claude/docs/tier-casebook.md`
+     `.claude/docs/tier-casebook.md` plus its matching `tier-casebook.jsonl`
+     record (schema: `casebook-format.md`)
    - notes duplicating what project docs already record → propose deletion
 3. **Notes hygiene.** Flag any notes file over its 200-line limit or carrying
    resolved items.

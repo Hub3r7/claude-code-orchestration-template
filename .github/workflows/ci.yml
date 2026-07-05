@@ -25,6 +25,9 @@ jobs:
       - name: Validate engineering skills
         run: python3 scripts/validate_skills.py
 
+      - name: Validate tier casebook
+        run: python3 scripts/validate_casebook.py
+
       - name: Test destructive-git hook
         run: |
           sudo apt-get update && sudo apt-get install -y jq

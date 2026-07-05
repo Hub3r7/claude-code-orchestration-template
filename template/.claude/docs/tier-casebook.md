@@ -5,6 +5,12 @@ when the tier is not obvious. It is a **living document**: whenever the user cor
 tier decision, append the case with a one-line rationale. Bootstrap may seed
 project-specific cases below the generic set.
 
+Every case also exists as a machine-readable record in `tier-casebook.jsonl` — one JSON
+object per case, schema defined in `casebook-format.md`. Append **both** the table row
+and the record; CI checks they stay in sync. The records make casebooks portable:
+shareable between projects, aggregatable, and usable as labeled examples for evaluating
+blast-radius estimation.
+
 Match on the *reason* a task lands where it does — not on surface similarity of the
 task description. When in doubt between two tiers, take the higher one (CLAUDE.md rule).
 

@@ -20,7 +20,7 @@ It's configuration, not code: one `CLAUDE.md` and a `.claude/` folder. Copy `tem
 
 Running several agents on a codebase is the easy part. The judgment is the hard part: not wrapping a one-line fix in ceremony it doesn't need, and not letting a risky change through without the review it does.
 
-The tier follows the risk. New files push a task to at least tier 2, external I/O or a new security surface to tier 3, a new major component or anything security-critical to tier 4. When the orchestrator is unsure between two, it picks the higher one. Borderline cases are calibrated by a casebook of worked examples — and every time you correct a tier decision, the case is appended, so classification converges on your project's instincts instead of drifting.
+The tier follows the risk. New files push a task to at least tier 2, external I/O or a new security surface to tier 3, a new major component or anything security-critical to tier 4. When the orchestrator is unsure between two, it picks the higher one. Borderline cases are calibrated by a casebook of worked examples — and every time you correct a tier decision, the case is appended, so classification converges on your project's instincts instead of drifting. Each case is also a machine-readable JSONL record (schema in `casebook-format.md`), so casebooks can be shared and aggregated across projects.
 
 ## Enforced, not promised
 
