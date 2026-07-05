@@ -36,7 +36,7 @@ Earlier versions asked the model to follow the protocol and hoped. This version 
 - **The circuit breaker is physical.** After three FAILs on the same gate, the next re-review is blocked outright — the orchestrator has to escalate to you; it can't quietly keep looping.
 - **Reviewers can't touch code.** `disallowedTools` keeps every gate and consultant read-only, down to shell redirects.
 - **The orchestrator can't either.** A hook blocks main-session writes outside meta-configuration — including the common shell write forms (redirection, `tee`, `sed -i`) against existing project files. Code goes through the developer, or it doesn't go.
-- **Chains survive long sessions.** A chain manifest holds tier, plan, and position; after a context compaction, a session restart, or `/resume`, a hook re-injects it, so an in-flight chain resumes mechanically instead of being reconstructed from memory.
+- **Chains survive long sessions.** A chain manifest holds tier, plan, and position; after a context compaction, a session restart, or `/resume`, a hook re-injects it, so an in-flight chain resumes mechanically instead of being reconstructed from memory. The manifest has one canonical writer — a small chain script (`init`/`advance`/`complete`/`abandon`) — so no model hand-edits state, whichever one is orchestrating.
 - **Turns don't end mid-chain silently.** A stop guard refuses the orchestrator's first attempt to end its turn with an unfinished chain — it must continue, hand the decision to you, or abandon the chain explicitly. Circuit-breaker escalations pass through.
 - **One semantic check.** A prompt hook on the small, cheap model verifies what regex can't: that a FAIL carries a numbered fix list and a PASS handoff carries acceptance criteria.
 - **Destructive git is stopped twice.** A regex hook catches force pushes, `reset --hard`, `clean -f`, and `rm -rf` including the short and combined flag forms; underneath it, `permissions.deny` rules and Claude Code's OS sandbox add a categorical layer where the platform supports it.
@@ -57,7 +57,7 @@ The practices are 23 skill files vendored byte-for-byte from [addyosmani/agent-s
 
 ## Evidence over vibes
 
-Every gate verdict lands in an append-only log. Run `/consolidate` weekly: it reports whether the gates actually catch things — and whether a tier's ceremony earns its cost — and proposes promotions: a finding caught three times becomes a rule in your project conventions, so it stops happening instead of being caught again, and a corrected tier call becomes a casebook case. For spend, use Claude Code's `/usage` or the OTEL setup in `.claude/docs/telemetry.md`. The template deliberately reports no metrics of its own — earlier versions had a skill that estimated them, and estimated metrics dressed up as measurements are worse than none.
+Every gate verdict lands in an append-only log, and every chain ends with a record — completed, with its FAIL-iteration count, or abandoned, with the reason (abandoned chains are evidence, not garbage). Run `/consolidate` weekly: it reports whether the gates actually catch things — and whether a tier's ceremony earns its cost — and proposes promotions: a finding caught three times becomes a rule in your project conventions, so it stops happening instead of being caught again, and a corrected tier call becomes a casebook case. For spend, use Claude Code's `/usage` or the OTEL setup in `.claude/docs/telemetry.md`. The template deliberately reports no metrics of its own — earlier versions had a skill that estimated them, and estimated metrics dressed up as measurements are worse than none.
 
 ## Quick start
 
@@ -73,7 +73,7 @@ cp /path/to/your/project/.claude/settings.template.json /path/to/your/project/.c
 cd /path/to/your/project && bash .claude/scripts/doctor.sh
 ```
 
-Then open Claude Code in your project and run `/bootstrap`. It asks about your project (stack, structure, conventions, what's sensitive), confirms what it understood, proposes a model for each agent and which skills to switch on, and fills in every `[PROJECT-SPECIFIC]` section. After that, tasks get classified and routed on their own.
+Then open Claude Code in your project and run `/bootstrap`. It asks about your project (stack, structure, conventions, what's sensitive), confirms what it understood, proposes a model for each agent and which skills to switch on, seeds a starter tier casebook from your project's risk topology, and fills in every `[PROJECT-SPECIFIC]` section. After that, tasks get classified and routed on their own.
 
 It needs Claude Code — it's built on its sub-agent system, hooks, and skills, so it won't work with other AI tools or IDEs. The hooks are bash and need `jq`; on Windows, run under WSL or Git Bash. A one-page [operator guide](template/.claude/docs/operator-guide.md) covers the daily commands, the status line, and what to do when a gate blocks something.
 
