@@ -10,15 +10,15 @@
 
 **Why it's different.** It is not another skill pack. It vendors [Addy Osmani's agent-skills](https://github.com/addyosmani/agent-skills) byte-for-byte as its engineering-doctrine layer, then adds the control plane around them: blast-radius tiering, agent chains, hook-enforced gates, durable chain state, a casebook that learns your project's risk topology, and an evidence log. It is Claude Code-specific by design.
 
-```
- Tier 0    developer → docs
- Tier 1    developer → quality-gate → docs
- Tier 2    architect → quality-gate → developer → quality-gate → docs
- Tier 3    architect → quality-gate → developer → quality-gate → hunter / defender → docs
- Tier 4    architect → quality-gate → developer → quality-gate → hunter ∥ defender → docs
-```
+<p align="center">
+  <img src="assets/tiers.svg" alt="Tier 0 runs developer → docs; each higher tier adds review agents, up to the full Tier 4 chain of architect, two quality gates, developer, hunter and defender in parallel, then docs" width="100%">
+</p>
 
 ## How it works
+
+<p align="center">
+  <img src="assets/how-it-works.svg" alt="A task is classified into a tier, runs the matching agent chain, passes through review gates, and lands in an evidence log; a FAIL loops back to the developer and a corrected tier feeds back into the casebook" width="100%">
+</p>
 
 1. **Task in** — you describe a change.
 2. **Tier classification (0–4)** — the orchestrator rates blast radius, calibrated by the casebook.

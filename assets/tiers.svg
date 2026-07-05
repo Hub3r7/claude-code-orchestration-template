@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="440" viewBox="0 0 1280 440" font-family="Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">
+  <defs>
+    <radialGradient id="ti-bg" cx="50%" cy="30%" r="90%">
+      <stop offset="0%" stop-color="#0e1730"/>
+      <stop offset="100%" stop-color="#070b18"/>
+    </radialGradient>
+    <marker id="ti-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#46566f"/>
+    </marker>
+  </defs>
+
+  <rect x="0.5" y="0.5" width="1279" height="439" rx="28" fill="url(#ti-bg)" stroke="#1d2942" stroke-width="1"/>
+
+  <text x="40" y="52" font-size="22" font-weight="800" fill="#f0f4f8">Review scales with risk</text>
+  <text x="40" y="78" font-size="14" fill="#8b98ac">Each tier runs the chain it needs — a typo runs one agent; a security-critical change runs the whole chain.</text>
+
+  <!-- arrows: connect consecutive chips per row (gaps at x 328→363, 481→516, 634→669, 787→822, 940→975, 1093→1128) -->
+  <g stroke="#46566f" stroke-width="1.6" marker-end="url(#ti-arrow)">
+    <!-- T0 (y130): dev->docs -->
+    <line x1="331" y1="130" x2="360" y2="130"/>
+    <!-- T1 (y190): dev->gate->docs -->
+    <line x1="331" y1="190" x2="360" y2="190"/><line x1="484" y1="190" x2="513" y2="190"/>
+    <!-- T2 (y250): arch->gate->dev->gate->docs -->
+    <line x1="331" y1="250" x2="360" y2="250"/><line x1="484" y1="250" x2="513" y2="250"/><line x1="637" y1="250" x2="666" y2="250"/><line x1="790" y1="250" x2="819" y2="250"/>
+    <!-- T3 (y310): arch->gate->dev->gate->hunter|def->docs -->
+    <line x1="331" y1="310" x2="360" y2="310"/><line x1="484" y1="310" x2="513" y2="310"/><line x1="637" y1="310" x2="666" y2="310"/><line x1="790" y1="310" x2="819" y2="310"/><line x1="943" y1="310" x2="972" y2="310"/>
+    <!-- T4 (y370): arch->gate->dev->gate->hunter->defender->docs -->
+    <line x1="331" y1="370" x2="360" y2="370"/><line x1="484" y1="370" x2="513" y2="370"/><line x1="637" y1="370" x2="666" y2="370"/><line x1="790" y1="370" x2="819" y2="370"/><line x1="943" y1="370" x2="972" y2="370"/><line x1="1096" y1="370" x2="1125" y2="370"/>
+  </g>
+
+  <!-- T4 parallel marker over hunter+defender -->
+  <text x="957" y="346" font-size="11" font-weight="600" fill="#fb7185" text-anchor="middle">run in parallel</text>
+
+  <!-- tier badges + labels -->
+  <g font-weight="800" text-anchor="middle">
+    <g><rect x="44" y="112" width="44" height="36" rx="9" fill="#34d399" fill-opacity="0.14" stroke="#34d399" stroke-opacity="0.7"/><text x="66" y="135" font-size="15" fill="#34d399">T0</text></g>
+    <g><rect x="44" y="172" width="44" height="36" rx="9" fill="#22d3ee" fill-opacity="0.14" stroke="#22d3ee" stroke-opacity="0.7"/><text x="66" y="195" font-size="15" fill="#22d3ee">T1</text></g>
+    <g><rect x="44" y="232" width="44" height="36" rx="9" fill="#818cf8" fill-opacity="0.14" stroke="#818cf8" stroke-opacity="0.7"/><text x="66" y="255" font-size="15" fill="#818cf8">T2</text></g>
+    <g><rect x="44" y="292" width="44" height="36" rx="9" fill="#fbbf24" fill-opacity="0.14" stroke="#fbbf24" stroke-opacity="0.7"/><text x="66" y="315" font-size="15" fill="#fbbf24">T3</text></g>
+    <g><rect x="44" y="352" width="44" height="36" rx="9" fill="#fb7185" fill-opacity="0.14" stroke="#fb7185" stroke-opacity="0.7"/><text x="66" y="375" font-size="15" fill="#fb7185">T4</text></g>
+  </g>
+  <g font-size="12.5" fill="#7e8ba0">
+    <text x="100" y="135">trivial</text>
+    <text x="100" y="195">routine</text>
+    <text x="100" y="255">standard</text>
+    <text x="100" y="315">extended</text>
+    <text x="100" y="375">full</text>
+  </g>
+
+  <!-- agent chips: fill dark, stroke tinted per tier. text centered at left+59 -->
+  <g font-size="12.5" font-weight="600" text-anchor="middle" fill="#d4dcea">
+    <!-- helper geometry: chip w118 h36; cols x = 210,363,516,669,822,975,1128; cx = 269,422,575,728,881,1034,1187 -->
+
+    <!-- T0 row y130 -->
+    <g stroke="#34d399" stroke-opacity="0.45">
+      <rect x="210" y="112" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="363" y="112" width="118" height="36" rx="9" fill="#131d33"/>
+    </g>
+    <text x="269" y="134">developer</text><text x="422" y="134">docs</text>
+
+    <!-- T1 row y190 -->
+    <g stroke="#22d3ee" stroke-opacity="0.45">
+      <rect x="210" y="172" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="363" y="172" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="516" y="172" width="118" height="36" rx="9" fill="#131d33"/>
+    </g>
+    <text x="269" y="194">developer</text><text x="422" y="194">quality-gate</text><text x="575" y="194">docs</text>
+
+    <!-- T2 row y250 -->
+    <g stroke="#818cf8" stroke-opacity="0.45">
+      <rect x="210" y="232" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="363" y="232" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="516" y="232" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="669" y="232" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="822" y="232" width="118" height="36" rx="9" fill="#131d33"/>
+    </g>
+    <text x="269" y="254">architect</text><text x="422" y="254">quality-gate</text><text x="575" y="254">developer</text><text x="728" y="254">quality-gate</text><text x="881" y="254">docs</text>
+
+    <!-- T3 row y310 -->
+    <g stroke="#fbbf24" stroke-opacity="0.45">
+      <rect x="210" y="292" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="363" y="292" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="516" y="292" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="669" y="292" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="822" y="292" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="975" y="292" width="118" height="36" rx="9" fill="#131d33"/>
+    </g>
+    <text x="269" y="314">architect</text><text x="422" y="314">quality-gate</text><text x="575" y="314">developer</text><text x="728" y="314">quality-gate</text><text x="881" y="314" font-size="11">hunter / defender</text><text x="1034" y="314">docs</text>
+
+    <!-- T4 row y370 -->
+    <g stroke="#fb7185" stroke-opacity="0.45">
+      <rect x="210" y="352" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="363" y="352" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="516" y="352" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="669" y="352" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="822" y="352" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="975" y="352" width="118" height="36" rx="9" fill="#131d33"/>
+      <rect x="1128" y="352" width="118" height="36" rx="9" fill="#131d33"/>
+    </g>
+    <text x="269" y="374">architect</text><text x="422" y="374">quality-gate</text><text x="575" y="374">developer</text><text x="728" y="374">quality-gate</text><text x="881" y="374">hunter</text><text x="1034" y="374">defender</text><text x="1187" y="374">docs</text>
+  </g>
+</svg>

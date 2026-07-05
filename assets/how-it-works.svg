@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="440" viewBox="0 0 1280 440" font-family="Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">
+  <defs>
+    <radialGradient id="hw-bg" cx="50%" cy="30%" r="90%">
+      <stop offset="0%" stop-color="#0e1730"/>
+      <stop offset="100%" stop-color="#070b18"/>
+    </radialGradient>
+    <marker id="hw-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5d6a80"/>
+    </marker>
+    <marker id="hw-arrow-fail" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#fb7185"/>
+    </marker>
+    <marker id="hw-arrow-learn" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d97757"/>
+    </marker>
+  </defs>
+
+  <rect x="0.5" y="0.5" width="1279" height="439" rx="28" fill="url(#hw-bg)" stroke="#1d2942" stroke-width="1"/>
+
+  <text x="40" y="56" font-size="22" font-weight="800" fill="#f0f4f8">How a task moves through the layer</text>
+  <text x="40" y="82" font-size="14" fill="#8b98ac">Risk in, review to match, evidence out — and two loops that keep it honest.</text>
+
+  <!-- straight arrows between stages -->
+  <g stroke="#33415c" stroke-width="2" fill="none" marker-end="url(#hw-arrow)">
+    <line x1="243" y1="208" x2="287" y2="208"/>
+    <line x1="493" y1="208" x2="537" y2="208"/>
+    <line x1="743" y1="208" x2="787" y2="208"/>
+    <line x1="993" y1="208" x2="1037" y2="208"/>
+  </g>
+
+  <!-- FAIL loop: Gates -> Run chain (arc above) -->
+  <path d="M 855 162 C 855 108, 675 108, 675 160" fill="none" stroke="#fb7185" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#hw-arrow-fail)"/>
+  <text x="765" y="100" font-size="12.5" font-weight="600" fill="#fb7185" text-anchor="middle">FAIL: back to the developer</text>
+
+  <!-- Learn loop: Evidence -> Classify (arc below) -->
+  <path d="M 1120 258 C 1120 356, 415 356, 415 258" fill="none" stroke="#d97757" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#hw-arrow-learn)"/>
+  <text x="768" y="350" font-size="12.5" font-weight="600" fill="#d9895f" text-anchor="middle">corrected tier feeds the casebook</text>
+
+  <!-- stage chips -->
+  <!-- 1 Task -->
+  <g>
+    <rect x="43" y="160" width="200" height="96" rx="14" fill="#131d33" stroke="#2a3a5c"/>
+    <circle cx="67" cy="186" r="5" fill="#7e8ba0"/>
+    <text x="83" y="191" font-size="16" font-weight="700" fill="#eaf0f8">Task in</text>
+    <text x="59" y="222" font-size="12.5" fill="#8fa0b8">you describe</text>
+    <text x="59" y="240" font-size="12.5" fill="#8fa0b8">a change</text>
+  </g>
+  <!-- 2 Classify -->
+  <g>
+    <rect x="293" y="160" width="200" height="96" rx="14" fill="#131d33" stroke="#3a2f2c"/>
+    <circle cx="317" cy="186" r="5" fill="#d97757"/>
+    <text x="333" y="191" font-size="16" font-weight="700" fill="#eaf0f8">Classify</text>
+    <text x="309" y="222" font-size="12.5" fill="#8fa0b8">blast radius:</text>
+    <text x="309" y="240" font-size="12.5" fill="#8fa0b8">Tier 0–4 (casebook)</text>
+  </g>
+  <!-- 3 Run chain -->
+  <g>
+    <rect x="543" y="160" width="200" height="96" rx="14" fill="#131d33" stroke="#2a3a5c"/>
+    <circle cx="567" cy="186" r="5" fill="#818cf8"/>
+    <text x="583" y="191" font-size="16" font-weight="700" fill="#eaf0f8">Run chain</text>
+    <text x="559" y="222" font-size="12.5" fill="#8fa0b8">agents by tier;</text>
+    <text x="559" y="240" font-size="12.5" fill="#8fa0b8">manifest tracks it</text>
+  </g>
+  <!-- 4 Gates -->
+  <g>
+    <rect x="793" y="160" width="200" height="96" rx="14" fill="#131d33" stroke="#2a3a5c"/>
+    <circle cx="817" cy="186" r="5" fill="#34d399"/>
+    <text x="833" y="191" font-size="16" font-weight="700" fill="#eaf0f8">Gates</text>
+    <text x="809" y="222" font-size="12.5" fill="#8fa0b8">PASS / FAIL,</text>
+    <text x="809" y="240" font-size="12.5" fill="#8fa0b8">verdict required</text>
+  </g>
+  <!-- 5 Evidence -->
+  <g>
+    <rect x="1043" y="160" width="200" height="96" rx="14" fill="#131d33" stroke="#2a3a5c"/>
+    <circle cx="1067" cy="186" r="5" fill="#fbbf24"/>
+    <text x="1083" y="191" font-size="16" font-weight="700" fill="#eaf0f8">Evidence</text>
+    <text x="1059" y="222" font-size="12.5" fill="#8fa0b8">log every verdict;</text>
+    <text x="1059" y="240" font-size="12.5" fill="#8fa0b8">/consolidate</text>
+  </g>
+
+  <text x="40" y="410" font-size="12.5" fill="#5d6a80">Enforced by hooks: no gate finishes without a verdict · the orchestrator can't write project code · chains survive compaction.</text>
+</svg>
