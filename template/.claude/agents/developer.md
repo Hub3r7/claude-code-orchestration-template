@@ -1,7 +1,7 @@
 ---
 name: developer
 description: Implementation specialist. Use when building new components, adding features, writing library code, or fixing implementation issues.
-model: opus
+model: sonnet # cost-aware default; the orchestrator may one-off override to Opus for complex Tier 3-4 work
 maxTurns: 80
 tools:
   - Read

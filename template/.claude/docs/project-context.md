@@ -42,6 +42,7 @@ Review chains Tier 0-4. Architect enters from Tier 2. quality-gate mandatory fro
 | `/push` | Push to remote with safety checks |
 | `/re-review` | Re-run review chain (review only) |
 | `/deep-analysis` | Deep project/subsystem analysis |
+| `/consolidate` | Weekly maintenance — evidence report + promote recurring findings to rules/casebook |
 
 ## Engineering Skills (active set)
 

@@ -73,6 +73,7 @@ Claude Code is the main orchestrator of all agent chains. The user is the produc
 **Orchestrator discipline (token efficiency):**
 - Do NOT re-read files already in context. Use existing knowledge from earlier in the session.
 - Keep agent prompts minimal: task description + HANDOFF context only.
+- developer runs on Sonnet by default. For Tier 3-4 work with genuinely complex logic the orchestrator MAY invoke it with a one-off Opus override — state that you are doing it and why, and mention the cost.
 
 **Agent notes persistence:** Read-only agents (those without Write tool) cannot persist their own notes. When an agent includes a `## NOTES UPDATE` section in its output, the content must land in `.agentNotes/<agent>/notes.md`. With the `settings.template.json` hooks installed, `notes-persist.sh` (PostToolUse) does this automatically; the orchestrator does it manually only when the hooks are absent. Never modify the agent's notes content.
 
@@ -95,6 +96,7 @@ Ownership is split: the orchestrator owns `task`, `tier`, `chain`, and `done` (a
 - After every agent completes, check output for `## NOTES UPDATE` — automatic with hooks installed; write it manually only when they are not
 - Verify acceptance criteria from each agent before invoking the next
 - Summarise results after the full chain completes (for real token/cost data use `/usage` or OTEL telemetry — see `.claude/docs/telemetry.md`)
+- After a Tier 3-4 chain that had any FAIL iterations, suggest `/consolidate` to the user — recurring findings should become rules, not repeated catches
 
 **What Claude Code NEVER does:**
 - Does NOT design implementations — that is the architect's role
@@ -121,6 +123,7 @@ Ownership is split: the orchestrator owns `task`, `tier`, `chain`, and `done` (a
 | `/push` | Push current branch to remote with safety checks |
 | `/re-review` | Re-run review chain on existing code (review only, no changes) |
 | `/deep-analysis` | Deep analysis of project structure, logic, and patterns |
+| `/consolidate` | Weekly maintenance — evidence report from the chain log + promotion of recurring findings into rules/casebook |
 
 ## Agent Knowledge Hierarchy
 
@@ -153,7 +156,7 @@ Each position in the chain is an engineering-lifecycle phase (DEFINE→PLAN→BU
 
 **Mechanical enforcement:** with the hooks from `settings.template.json` installed, both rules are enforced by code, not prose. `gate-verdict-check.sh` (SubagentStop) refuses to let a review agent finish without an explicit verdict or a `## BLOCKED` section, and records FAIL counts per gate in `.agentNotes/chain-state.json`. `chain-circuit-breaker.sh` (PreToolUse on agent spawning) blocks the next invocation of a gate that has issued 3 FAILs — the loop physically cannot continue until the user decides and the state file is reset (`rm .agentNotes/chain-state.json`). Stale counters can only escalate too early, never let a loop run too long.
 
-Three more rings complete the enforcement: `orchestrator-scope.sh` (PreToolUse) keeps the orchestrator out of project files, a **semantic prompt hook** (PostToolUse on agent completion, runs on the small fast model) checks what regex cannot — that a FAIL carries a numbered remediation list, that a PASS handoff carries acceptance criteria — and feeds violations back as reasons, and `post-compact-orient.sh` (PostCompact) re-injects the chain manifest into context after compaction so an in-flight chain resumes mechanically.
+Three more rings complete the enforcement: `orchestrator-scope.sh` (PreToolUse) keeps the orchestrator out of project files, a **semantic prompt hook** (PostToolUse on agent completion, runs on the small fast model) checks what regex cannot — that a FAIL carries a numbered remediation list, that a PASS handoff carries acceptance criteria — and feeds violations back as reasons, and `post-compact-orient.sh` (PostCompact) re-injects the chain manifest into context after compaction so an in-flight chain resumes mechanically. Underneath the hooks, `settings.template.json` also enables Claude Code's OS sandbox and ships `permissions.deny` mirrors of the destructive-git patterns — a categorical layer on platforms that support it; the regex hook stays the thorough one.
 
 **Chain routing:** Agents write a HANDOFF section with full context for the next agent. The orchestrator follows the tier chain by default but may override. Tier 3: hunter (external I/O, input parsers, network) vs defender (data persistence, audit trails, file integrity). **Tier 4 parallel review:** hunter and defender are independent, read-only, and need nothing from each other — invoke them in parallel (two Task calls in one message); docs still runs last after both return.
 

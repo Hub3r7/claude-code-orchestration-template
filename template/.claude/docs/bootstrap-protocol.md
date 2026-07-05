@@ -100,7 +100,7 @@ MODEL ASSIGNMENT (default)
 ==========================
 architect       Opus      (complex design decisions, tier selection)
 ui-designer     Sonnet    (UI/UX design with clear patterns)
-developer       Opus      (implementation requires deep understanding)
+developer       Sonnet    (cost-aware default; orchestrator may one-off override to Opus for complex Tier 3-4 work)
 quality-gate    Sonnet    (structured review with clear criteria)
 hunter          Sonnet    (security analysis with defined patterns)
 defender        Sonnet    (defensive review with defined patterns)
@@ -114,8 +114,12 @@ researcher      Sonnet    (systematic web research with citations — consultant
 **Present this table to the user and ask:**
 1. "Here is the recommended model assignment. Do you want to adjust any agent's model?"
 2. If the user wants to minimize costs: suggest downgrading architect to Sonnet (if project
-   is straightforward) and developer to Sonnet (if changes are typically small).
-3. If the user wants maximum quality: suggest upgrading quality-gate and hunter to Opus.
+   is straightforward).
+3. If the user wants maximum quality: suggest upgrading developer to Opus permanently, and
+   quality-gate to Opus with `effort: high`.
+4. Ask about review effort: quality-gate ships with `effort: medium` (routine correctness
+   gate). Offer `effort: high` for security- or correctness-critical projects. hunter and
+   defender always stay at `effort: high`.
 
 **After confirmation**, record the final assignment in `CLAUDE.md` under the Agent Team table
 and in each agent's `.md` file header.

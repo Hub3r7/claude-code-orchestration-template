@@ -30,7 +30,7 @@ the cards landed, tighten the go-deep triggers in the affected cards.
 
 ## Build next (in this order)
 
-### B1. Consolidation step — notes → project rules
+### B1. Consolidation step — notes → project rules — DONE 2026-07-05
 **Why:** recurring findings should become preventive rules, not repeated catches.
 1. New skill `/consolidate` (sw-dev team): read all `.agentNotes/*/notes.md` +
    `chain-log.jsonl`; propose (do not auto-apply) promotions: recurring code finding →
@@ -39,7 +39,7 @@ the cards landed, tighten the go-deep triggers in the affected cards.
 2. Add one line to the docs agent: at the end of Tier 3-4 chains, recommend
    `/consolidate` if its notes contain a finding seen ≥3 times.
 
-### B2. Model & effort reassignment (cost)
+### B2. Model & effort reassignment (cost) — DONE 2026-07-05
 **Why:** cost is a binding constraint (July 2026).
 1. In `bootstrap-protocol.md`, change the default: developer=Sonnet (Opus only on
    Tier 3-4 via an orchestrator note), architect stays Opus.
@@ -47,7 +47,7 @@ the cards landed, tighten the go-deep triggers in the affected cards.
    bootstrap question. Keep `effort: high` on hunter/defender.
 3. Measure with `/usage` before/after on comparable tasks; revert if quality visibly drops.
 
-### B3. Plugin packaging
+### B3. Plugin packaging — POSTPONED (deliberately; revisit when distribution matters)
 **Why:** distribution + updates; "copy a folder" doesn't version.
 1. Create `plugin.json` (name: claude-code-orchestration, the `template/` content:
    agents, skills, hooks, settings fragments). Follow the plugin layout from
@@ -57,14 +57,14 @@ the cards landed, tighten the go-deep triggers in the affected cards.
    via marketplace add + `enabledPlugins`.
 3. Keep the copy-a-folder path in README as the no-plugin fallback.
 
-### B4. Sandbox as third enforcement ring
+### B4. Sandbox as third enforcement ring — DONE 2026-07-05 (macOS run still unverified)
 **Why:** the destructive-git hook is regex; sandbox is categorical.
 1. Add to `settings.template.json`: `"sandbox": {"enabled": true, "autoAllowBashIfSandboxed": true}`
    plus `permissions.deny` mirrors of the hook's worst cases (`Bash(git push --force*)`, …).
 2. Keep the regex hook — layered defense, hook gives better error messages.
 3. Test on Linux + macOS before committing; sandbox availability differs.
 
-### B5. Self-maintenance automation
+### B5. Self-maintenance automation — DONE 2026-07-05 (drift check in CI monthly; /consolidate cadence is manual or /loop)
 **Why:** the evidence loop must close without anyone remembering it.
 1. Weekly (local `/loop` or a scheduled routine): run the V2 evidence review, output a
    short tuning report.
