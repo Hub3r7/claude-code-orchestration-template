@@ -20,7 +20,13 @@ It's configuration, not code: one `CLAUDE.md` and a `.claude/` folder. Copy `tem
 
 Running several agents on a codebase is the easy part. The judgment is the hard part: not wrapping a one-line fix in ceremony it doesn't need, and not letting a risky change through without the review it does.
 
-The tier follows the risk. New files push a task to at least tier 2, external I/O or a new security surface to tier 3, a new major component or anything security-critical to tier 4. When the orchestrator is unsure between two, it picks the higher one. Borderline cases are calibrated by a casebook of worked examples — and every time you correct a tier decision, the case is appended, so classification converges on your project's instincts instead of drifting. Each case is also a machine-readable JSONL record (schema in `casebook-format.md`), so casebooks can be shared and aggregated across projects.
+The tier follows the risk. New files push a task to at least tier 2, external I/O or a new security surface to tier 3, a new major component or anything security-critical to tier 4. When the orchestrator is unsure between two, it picks the higher one.
+
+## A casebook that learns
+
+Rules calibrate poorly on borderline cases; examples calibrate well. So the tier decision is backed by a casebook of worked classification examples — "major-version bump of a core framework" is tier 3 while "patch bump, lockfile only" is tier 1, and each case records *why*. Every time you correct a tier decision, the case is appended. Classification converges on your project's instincts instead of drifting: in effect, a learning blast-radius classifier, written in markdown.
+
+Each case also exists as a machine-readable JSONL record whose change characteristics — new files, shared code, external I/O, persistence, security surface, new component — mirror the tier rules one-to-one (`casebook-format.md` defines the schema; CI keeps the record and the human-readable table in sync). That makes casebooks portable: share them between projects, aggregate them into a corpus, or use the characteristics → tier pairs as labeled data for evaluating how well a model estimates the blast radius of a change. The correction cases are the highest-signal rows — each one records exactly where a real orchestrator's estimate differed from a human's.
 
 ## Enforced, not promised
 
@@ -50,7 +56,7 @@ The practices are 23 skill files vendored byte-for-byte from [addyosmani/agent-s
 
 ## Evidence over vibes
 
-Every gate verdict lands in an append-only log. Run `/consolidate` weekly: it reports whether the gates actually catch things — and whether a tier's ceremony earns its cost — and proposes promotions: a finding caught three times becomes a rule in your project conventions, so it stops happening instead of being caught again. For spend, use Claude Code's `/usage` or the OTEL setup in `.claude/docs/telemetry.md`. The template deliberately reports no metrics of its own — earlier versions had a skill that estimated them, and estimated metrics dressed up as measurements are worse than none.
+Every gate verdict lands in an append-only log. Run `/consolidate` weekly: it reports whether the gates actually catch things — and whether a tier's ceremony earns its cost — and proposes promotions: a finding caught three times becomes a rule in your project conventions, so it stops happening instead of being caught again, and a corrected tier call becomes a casebook case. For spend, use Claude Code's `/usage` or the OTEL setup in `.claude/docs/telemetry.md`. The template deliberately reports no metrics of its own — earlier versions had a skill that estimated them, and estimated metrics dressed up as measurements are worse than none.
 
 ## Quick start
 
