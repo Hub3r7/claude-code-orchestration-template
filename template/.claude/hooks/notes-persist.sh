@@ -35,10 +35,21 @@ RESP=$(echo "$INPUT" | jq -r '
     end
 ' 2>/dev/null)
 
+# Extract the NOTES UPDATE body. Read-only agents wrap it in a ```markdown
+# fence and lead with an "# H1" title + "## H2" subsections, so we must NOT stop
+# at the first "## " (the old bug truncated everything after the title, leaving
+# only a fence + title in every read-only agent's notes). Stop only at a
+# recognized *sibling* protocol section, or at the closing code fence (which the
+# harness may fuse with trailing metadata, e.g. ```agentId:...).
 NOTES=$(printf '%s\n' "$RESP" | awk '
   /^##[[:space:]]+NOTES UPDATE[[:space:]]*$/ { f = 1; next }
-  f && /^## / { exit }
-  f { print }
+  !f { next }
+  !started && /^[[:space:]]*$/ { next }                 # skip leading blanks
+  !started && /^```/ { started = 1; next }              # skip one opening fence
+  { started = 1 }
+  /^```/ { exit }                                       # closing fence / metadata boundary
+  /^##[[:space:]]+(RESULT|HANDOFF|VERDICT|BLOCKED|AGENT UPDATE)/ { exit }
+  { print }
 ')
 
 # Nothing to persist (no section, or an empty one) → leave existing notes alone.

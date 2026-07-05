@@ -244,6 +244,29 @@ fi
 
 check 0 "$(run_notes_str Bash critic "$with_notes")" "non-Agent tool ignored"
 
+# Regression (found live 2026-07-05): read-only agents wrap their notes in a
+# ```markdown fence and use "# H1" + "## H2" subheadings. The old extractor
+# stopped at the first internal "## " and persisted only the fence + title, so
+# every gate/hunter/defender/architect note was silently truncated to nothing.
+fenced_notes='## NOTES UPDATE
+```markdown
+# defender notes
+## Findings
+- SQL injection risk in the login handler
+## Follow-up
+- recheck after the fix ships
+```'
+check 0 "$(run_notes_str Agent defender "$fenced_notes")" "fenced/structured notes persisted"
+if ! grep -q "SQL injection risk" "$WORK/.agentNotes/defender/notes.md" 2>/dev/null; then
+  echo "  FAIL: structured notes truncated before the first H2 subsection"; fail=1
+fi
+if ! grep -q "recheck after the fix" "$WORK/.agentNotes/defender/notes.md" 2>/dev/null; then
+  echo "  FAIL: structured notes truncated before a later H2 subsection"; fail=1
+fi
+if grep -q '```' "$WORK/.agentNotes/defender/notes.md" 2>/dev/null; then
+  echo "  FAIL: wrapping code fence leaked into persisted notes"; fail=1
+fi
+
 # ---------------------------------------------------------------------------
 # orchestrator-scope.sh (PreToolUse on Edit|Write|NotebookEdit)
 # ---------------------------------------------------------------------------
