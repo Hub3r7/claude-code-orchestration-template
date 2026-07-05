@@ -220,6 +220,13 @@ per-project activation rules live in **`.claude/agent-skills/README.md`** — th
 source of truth for the mapping. Agents self-load their mapped skills (see each agent's
 `## Before any task`).
 
+**Two-tier read.** Every skill has an operating card in `.claude/agent-skills/cards/` —
+a distillation of its binding rules, scope limits, and go-deep triggers. Reading the card
+is the **default** way to operate under a mapped skill on every task; read the full
+`SKILL.md` when a go-deep trigger on the card fires, when the task is centrally about that
+skill's domain, or when the card leaves you uncertain. The full skill is canonical — on
+conflict it wins over the card (read protocol: `INTEGRATION.md`, bridge 6).
+
 **Orchestrator DEFINE-phase trigger (mandatory — symmetric with the agents).** Dev-cycle
 agents load their phase skills via their own `## Before any task`; the orchestrator must do
 the same for the DEFINE phase, otherwise those skills stay inert. When an incoming request

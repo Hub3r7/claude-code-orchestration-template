@@ -91,6 +91,22 @@ def main() -> int:
         if not os.path.isfile(required):
             errors.append(f"missing required file: {os.path.relpath(required, REPO_ROOT)}")
 
+    # 4b. Operating cards: every vendored skill has cards/<name>.md and vice versa,
+    # so a vendored refresh cannot silently ship a skill without its distillation.
+    cards_dir = os.path.join(SKILLS_DIR, "cards")
+    if not os.path.isdir(cards_dir):
+        errors.append("missing cards/ directory (operating-cards layer)")
+    else:
+        card_names = {
+            os.path.splitext(f)[0]
+            for f in os.listdir(cards_dir)
+            if f.endswith(".md")
+        }
+        for missing in sorted(skill_names - card_names):
+            errors.append(f"cards/: missing operating card for vendored skill '{missing}'")
+        for ghost in sorted(card_names - skill_names):
+            errors.append(f"cards/{ghost}.md: no matching vendored skill")
+
     # 5. README mapping consistency (both directions)
     if os.path.isfile(readme):
         with open(readme, encoding="utf-8") as fh:

@@ -47,7 +47,9 @@ it and the skills that agent operates under:
 
 Each agent operates under its **core** skills whenever it runs on non-trivial work.
 **Conditional** skills apply when the named situation arises (the skill's own "Use when"
-fires); they are still mandatory *when* they apply, not optional.
+fires); they are still mandatory *when* they apply, not optional. Every skill has a
+distilled **operating card** in [`cards/`](cards/) — the always-read layer; the full
+`SKILL.md` is read on the card's go-deep triggers (read protocol: `INTEGRATION.md`, bridge 6).
 
 | Agent | Core | Conditional |
 |-------|------|-------------|

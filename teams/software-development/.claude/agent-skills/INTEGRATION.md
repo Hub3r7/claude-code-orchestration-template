@@ -36,6 +36,14 @@ bolted on beside it.
    are exhaustive supplements. Consult them when a skill points there and the work warrants
    the depth — they are not required reading for every task.
 
+6. **Cards first, doctrine on demand.** Every vendored skill has a distilled *operating
+   card* in `cards/<skill>.md` — ours, not upstream. Operating under a skill means: read
+   its card every time; read the full `SKILL.md` when a go-deep trigger on the card fires,
+   when the task is centrally about that skill's domain, or when the card leaves you
+   uncertain. The full skill is canonical — on any conflict the `SKILL.md` wins and the
+   card must be fixed. Cards are regenerated on every vendored refresh; CI fails when a
+   skill lacks a card.
+
 ## Per-skill bridges (only where there is a specific binding)
 
 | Skill | How it binds here |
@@ -54,5 +62,6 @@ bolted on beside it.
 - `SKILL.md` and `references/` are verbatim upstream — **never edited** — so a refresh is
   just a re-fetch at a newer commit. All adaptation lives in this file, the README mapping,
   and each agent's `## Before any task`.
-- We did **not** trim stack examples or compress skills. This framework is quality-over-cost;
-  the doctrine's depth is the point, not a token cost to minimize.
+- We did **not** trim stack examples or compress the skills themselves. The depth stays
+  intact in the `SKILL.md` files for when it matters; the `cards/` layer only changes the
+  *default read* on each invocation — distillation beside the doctrine, never instead of it.
