@@ -38,6 +38,8 @@ Review chains Tier 0-4. Architect enters from Tier 2. quality-gate mandatory fro
 |-------|---------|
 | `/bootstrap` | Customize all `[PROJECT-SPECIFIC]` sections |
 | `/tier-check` | Analyze task → recommend tier and chain |
+| `/chain-status` | Where the chain stands — position, FAIL counters, verdicts |
+| `/abandon` | Cleanly abandon the in-flight chain (logged with a reason) |
 | `/commit` | Conventional commit from current changes |
 | `/push` | Push to remote with safety checks |
 | `/re-review` | Re-run review chain (review only) |

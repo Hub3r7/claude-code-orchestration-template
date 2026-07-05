@@ -7,9 +7,10 @@
 # keep looping developer → gate and must escalate to the user instead
 # (repeated FAILs signal a spec or design flaw, not an implementation slip).
 #
-# Counters reset on a PASS from the gate, or by deleting the state file after
-# the user has decided how to proceed. Stale counters can only over-block
-# (escalate one review too early), never under-block — the safe direction.
+# Counters reset on a PASS from the gate, or explicitly via
+# `chain.sh reset <gate>` / `chain.sh abandon` after the user has decided how
+# to proceed. Stale counters can only over-block (escalate one review too
+# early), never under-block — the safe direction.
 
 INPUT=$(cat)
 TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
@@ -32,7 +33,7 @@ STATE="$CWD/.agentNotes/chain-state.json"
 COUNT=$(jq -r --arg a "$SUBAGENT" '.fail_counts[$a] // 0' "$STATE")
 
 if [ "$COUNT" -ge 3 ]; then
-  echo "Circuit breaker: $SUBAGENT has issued FAIL $COUNT times on this work. Do not re-enter the review loop — escalate to the user with the outstanding findings (repeated FAILs signal unclear requirements or a design flaw). After the user decides how to proceed, reset the breaker: rm .agentNotes/chain-state.json" >&2
+  echo "Circuit breaker: $SUBAGENT has issued FAIL $COUNT times on this work. Do not re-enter the review loop — escalate to the user with the outstanding findings (repeated FAILs signal unclear requirements or a design flaw). After the user decides: continue with 'bash .claude/scripts/chain.sh reset $SUBAGENT', or abandon with 'bash .claude/scripts/chain.sh abandon \"<reason>\"'." >&2
   exit 2
 fi
 

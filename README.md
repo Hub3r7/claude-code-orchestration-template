@@ -68,11 +68,14 @@ cp claude-code-orchestration-template/template/CLAUDE.md /path/to/your/project/
 cp -r claude-code-orchestration-template/template/.claude /path/to/your/project/
 # recommended: enable the hook suite, sandbox, and status line
 cp /path/to/your/project/.claude/settings.template.json /path/to/your/project/.claude/settings.json
+
+# verify the install
+cd /path/to/your/project && bash .claude/scripts/doctor.sh
 ```
 
 Then open Claude Code in your project and run `/bootstrap`. It asks about your project (stack, structure, conventions, what's sensitive), confirms what it understood, proposes a model for each agent and which skills to switch on, and fills in every `[PROJECT-SPECIFIC]` section. After that, tasks get classified and routed on their own.
 
-It needs Claude Code — it's built on its sub-agent system, hooks, and skills, so it won't work with other AI tools or IDEs. The hooks are bash and need `jq`; on Windows, run under WSL or Git Bash.
+It needs Claude Code — it's built on its sub-agent system, hooks, and skills, so it won't work with other AI tools or IDEs. The hooks are bash and need `jq`; on Windows, run under WSL or Git Bash. A one-page [operator guide](template/.claude/docs/operator-guide.md) covers the daily commands, the status line, and what to do when a gate blocks something.
 
 ## Repository layout
 

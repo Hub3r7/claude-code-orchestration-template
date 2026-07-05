@@ -33,7 +33,28 @@ orchestrator-scope exemption depends on it).
 4. If a field is missing in practice, fix the affected hook's `jq` paths — the designs
    hold, only field names may drift.
 
+### V1.5. Full live test on a fresh project — NEXT (user has a candidate project)
+Install the template on a project that never had it (cp + `doctor.sh` + `/bootstrap`),
+then work normally for a few sessions. Checklist — each item is a residual no CI test
+covers:
+1. `doctor.sh` passes on the fresh install; `/bootstrap` seeds the profile, the active
+   skill set, and 3-5 project casebook cases (Phase 3c).
+2. One Tier 1 chain end-to-end driven by `chain.sh` (init → advance → complete lands a
+   `chain_complete` line in the log; statusline tracks it).
+3. One deliberate Tier 3 task (external I/O — e.g. an HTTP export) → hunter/defender
+   position runs; the Tier 3 approval gate is presented first.
+4. Mid-chain: restart or `/resume` the session → SessionStart re-injects the manifest;
+   send an unrelated prompt → the UserPromptSubmit one-line reminder appears.
+5. Stop guard: at least one blocked turn-end mid-chain; the model reacts by continuing
+   or explicitly pausing (never loops).
+6. Ask-gate: ask the model to tweak a hook — the approval prompt must appear.
+7. `/deep-analysis` runs forked (main context stays small — verify with `/usage`).
+8. Finish with `/consolidate` as V2-lite: verdicts, `chain_complete` rows, tool
+   failures, casebook proposals. Record conclusions in V2 below.
+
 ### V2. Evidence review after ~2 weeks of use
+Can run as the closing step of V1.5 — `chain_complete`/`chain_abandoned` events give
+per-chain evidence without waiting two weeks.
 Read `.agentNotes/chain-log.jsonl` across projects. Questions: how many FAILs were real
 catches vs. noise? Does Tier 2's double quality-gate ever catch anything the single gate
 wouldn't? Outcomes: (a) keep, (b) slim Tier 2 to one gate, (c) recalibrate tier

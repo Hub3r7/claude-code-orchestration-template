@@ -172,6 +172,21 @@ Record the confirmed active set in Phase 4 (in `CLAUDE.md` and `project-context.
 Inactive skills stay vendored on disk but are dropped from the agents' active mapping, so
 no agent reads doctrine that does not apply to the project.
 
+### Phase 3c — Casebook Seeding
+
+Tier calibration should not start from zero. From the project profile, derive **3-5
+project-specific tier cases** — the changes this particular project will actually see,
+classified by ITS risk topology. Examples of the pattern (do not copy literally):
+
+- a web app with auth: "any change under the session/auth middleware" → Tier 4
+- a CLI tool with a config parser: "new config key with validation" → Tier 2
+- a data pipeline: "schema change in the events table" → Tier 3 (persistence)
+
+Present the proposed cases with one-line rationales for user confirmation. On approval,
+append each to `.claude/docs/tier-casebook.md` (Project-specific cases table) AND as a
+record in `tier-casebook.jsonl` with `"source": "bootstrap"` and the project name —
+schema in `casebook-format.md`. Skip silently only if the user declines.
+
 ### Phase 4 — Agent Specialization
 
 Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sections:

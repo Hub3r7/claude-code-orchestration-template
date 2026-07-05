@@ -38,5 +38,5 @@ POS=$(jq -r '
   + ", next: " + ((.chain // [])[((.done // []) | length)] // "?")
 ' "$STATE")
 
-echo "Chain in flight ($POS). Continue the chain, or state explicitly why you are pausing — waiting on user input, or abandoning the chain (then remove .agentNotes/chain-state.json and say why). A chain must not be left dangling silently." >&2
+echo "Chain in flight ($POS). Continue the chain, or state explicitly why you are pausing — waiting on user input, or abandoning the chain (run: bash .claude/scripts/chain.sh abandon \"<reason>\"). A chain must not be left dangling silently." >&2
 exit 2

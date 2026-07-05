@@ -417,6 +417,52 @@ esac
 rm -f "$STATE"
 check TestModel "$(run_statusline)" "statusline falls back to model name"
 
+# ---------------------------------------------------------------------------
+# chain.sh (canonical manifest writer)
+# ---------------------------------------------------------------------------
+CHAIN="$REPO_ROOT/template/.claude/scripts/chain.sh"
+echo "Script: $CHAIN"
+
+run_chain() { (cd "$WORK" && bash "$CHAIN" "$@") >/dev/null 2>&1; echo $?; }
+
+rm -f "$STATE"
+check 1 "$(run_chain advance developer)" "advance without a manifest fails"
+check 0 "$(run_chain init 1 "fix bug" developer quality-gate docs)" "init writes a fresh manifest"
+check 1 "$(run_chain init 1 "another" developer)" "init refuses while a chain is in flight"
+check developer "$(jq -r '.chain[0]' "$STATE")" "manifest records the chain"
+check 1 "$(run_chain advance quality-gate)" "advance out of order fails"
+check 0 "$(run_chain advance developer)" "advance in order passes"
+check 1 "$(run_chain complete)" "complete refuses an unfinished chain"
+run_chain advance quality-gate >/dev/null
+run_chain advance docs >/dev/null
+check 0 "$(run_chain complete)" "complete passes when all positions are done"
+check chain_complete "$(tail -1 "$LOG" | jq -r .event)" "chain_complete logged"
+check 0 "$(run_chain init 2 "task2" architect developer)" "init allowed after complete"
+check 0 "$(run_chain reset quality-gate)" "reset zeroes a gate counter"
+check 0 "$(run_chain abandon "scope changed")" "abandon logs and clears state"
+check chain_abandoned "$(tail -1 "$LOG" | jq -r .event)" "chain_abandoned logged with reason"
+if [ -e "$STATE" ]; then echo "  FAIL: abandon left the manifest behind"; fail=1; fi
+check 0 "$(run_chain show)" "show works with no chain in flight"
+
+# ---------------------------------------------------------------------------
+# doctor.sh (fresh-install verification)
+# ---------------------------------------------------------------------------
+DOCTOR="$REPO_ROOT/template/.claude/scripts/doctor.sh"
+echo "Script: $DOCTOR"
+
+INSTALL="$(mktemp -d)"
+cp "$REPO_ROOT/template/CLAUDE.md" "$INSTALL/"
+cp -r "$REPO_ROOT/template/.claude" "$INSTALL/"
+cp "$INSTALL/.claude/settings.template.json" "$INSTALL/.claude/settings.json"
+if ! (cd "$INSTALL" && bash .claude/scripts/doctor.sh >/dev/null 2>&1); then
+  echo "  FAIL: doctor reports problems on a clean template install"; fail=1
+fi
+rm -f "$INSTALL/.claude/settings.json"
+if (cd "$INSTALL" && bash .claude/scripts/doctor.sh >/dev/null 2>&1); then
+  echo "  FAIL: doctor passed without settings.json (hooks inactive)"; fail=1
+fi
+rm -rf "$INSTALL"
+
 if [ "$fail" -eq 0 ]; then
   echo "Hook tests OK."
 else

@@ -25,9 +25,7 @@ _Describe what the project does, who it is for, and its primary design goals._
 
 ## Operating Behaviors (baseline — every agent and the orchestrator)
 
-These are always on, across all tiers and chains, independent of any skill or phase —
-non-negotiable. Distilled from the agent-skills meta-skill; they make the system safer
-and more autonomous by default.
+Always on, across all tiers and chains, independent of any skill or phase — non-negotiable.
 
 1. **Surface assumptions.** Before non-trivial work, state the assumptions you are making about requirements, architecture, and scope — "correct me now or I proceed with these." Never silently fill ambiguity.
 2. **Manage confusion actively.** On a contradiction or unclear spec: stop, name the specific confusion, present the tradeoff or ask — do not proceed on a guess. For agents this means raising a BLOCKED section so the chain pauses.
@@ -68,35 +66,34 @@ Claude Code is the main orchestrator of all agent chains. The user is the produc
 **Forming agent prompts (context boundary):**
 - The orchestrator provides **task context only**: what to do, why, scope, acceptance criteria, and HANDOFF from the previous agent in the chain.
 - The orchestrator NEVER injects project rules, conventions, or CLAUDE.md content into the agent prompt — agents self-load these from their own `.md` instructions (`## Before any task`).
-- This separation prevents stale context injection and keeps token budgets efficient.
 
 **Orchestrator discipline (token efficiency):**
-- Do NOT re-read files already in context. Use existing knowledge from earlier in the session.
-- Keep agent prompts minimal: task description + HANDOFF context only.
-- developer runs on Sonnet by default. For Tier 3-4 work with genuinely complex logic the orchestrator MAY invoke it with a one-off Opus override — state that you are doing it and why, and mention the cost.
+- Do NOT re-read files already in context. Keep agent prompts minimal: task description + HANDOFF context only.
+- developer runs on Sonnet by default. For Tier 3-4 work with genuinely complex logic the orchestrator MAY invoke it with a one-off Opus override — state that you are doing it, why, and the cost.
 
-**Agent notes persistence:** Read-only agents (those without Write tool) cannot persist their own notes. When an agent includes a `## NOTES UPDATE` section in its output, the content must land in `.agentNotes/<agent>/notes.md`. With the `settings.template.json` hooks installed, `notes-persist.sh` (PostToolUse) does this automatically; the orchestrator does it manually only when the hooks are absent. Never modify the agent's notes content.
+**Agent notes persistence:** read-only agents emit a `## NOTES UPDATE` section; with the hooks installed, `notes-persist.sh` writes it to `.agentNotes/<agent>/notes.md` automatically. Do it manually only when hooks are absent; never modify the content.
 
-**Chain state manifest:** `.agentNotes/chain-state.json` is the chain's durable state — it survives context compaction. At chain start (Tier 1+) the orchestrator writes a fresh manifest, replacing the previous chain's file:
+**Chain state manifest:** `.agentNotes/chain-state.json` is the chain's durable state — it survives compaction and restarts. Drive it exclusively through the canonical writer:
 
-```json
-{"task": "add rate limiting to API client", "tier": 3,
- "chain": ["architect", "quality-gate", "developer", "quality-gate", "hunter", "docs"],
- "done": [], "fail_counts": {}}
+```
+bash .claude/scripts/chain.sh init <tier> "<task>" <agent> [<agent>...]   # at chain start (Tier 1+)
+bash .claude/scripts/chain.sh advance <agent>     # after a position completes (gates: only on PASS)
+bash .claude/scripts/chain.sh complete            # after the last position — logs chain_complete
+bash .claude/scripts/chain.sh abandon "<reason>"  # stopping early — logs, then clears state
+bash .claude/scripts/chain.sh reset <gate>        # user-approved circuit-breaker reset
+bash .claude/scripts/chain.sh show                # current position + recent log
 ```
 
-Ownership is split: the orchestrator owns `task`, `tier`, `chain`, and `done` (append each agent after it completes); the hooks own `fail_counts`, and they append every gate verdict to `.agentNotes/chain-log.jsonl` — the durable outcome history (review it periodically: how many FAILs were real catches tells you whether the tiers are calibrated). **After a compaction, or when resuming a session mid-work, read the manifest first** — it restores chain position mechanically instead of reconstructing it from conversation fragments.
+Ownership is split: the orchestrator drives `task`/`tier`/`chain`/`done` through the script; the hooks own `fail_counts` and append every verdict to `.agentNotes/chain-log.jsonl` — the durable outcome history. A FAIL re-review loop does not advance the position — `advance` a gate only when it passes. Hand-editing the JSON (same schema) is the fallback when the script is unavailable. **After a compaction, or when resuming a session mid-work, read the manifest first** — it restores chain position mechanically instead of reconstructing it from conversation fragments.
 
 **During chain execution:**
-- At the start of a new chain, write a fresh chain manifest to `.agentNotes/chain-state.json` (see **Chain state manifest** above) — this also resets the circuit breaker; stale FAIL counters from a previous chain would escalate too early
-- After each agent completes, append its name to the manifest's `done` list
+- `chain.sh init` at chain start (a fresh manifest also resets the circuit breaker — stale FAIL counters would escalate too early); `advance` after each completed position; `complete` at the end
 - State which agent is being invoked and why before each invocation
-- Surface BLOCKED sections immediately — never proceed past them silently
-- After every agent completes, check output for `AGENT UPDATE RECOMMENDED` — if present, surface the recommendation to the user immediately before proceeding with the chain
-- After every agent completes, check output for `## NOTES UPDATE` — automatic with hooks installed; write it manually only when they are not
+- Surface `## BLOCKED` sections immediately — never proceed past them silently
+- Surface any `AGENT UPDATE RECOMMENDED` in an agent's output to the user before continuing the chain
 - Verify acceptance criteria from each agent before invoking the next
-- Summarise results after the full chain completes (for real token/cost data use `/usage` or OTEL telemetry — see `.claude/docs/telemetry.md`)
-- After a Tier 3-4 chain that had any FAIL iterations, suggest `/consolidate` to the user — recurring findings should become rules, not repeated catches
+- Summarise results after the chain completes (real cost data: `/usage` or `.claude/docs/telemetry.md`)
+- After a Tier 3-4 chain with FAIL iterations, suggest `/consolidate` — recurring findings should become rules, not repeated catches
 
 **What Claude Code NEVER does:**
 - Does NOT design implementations — that is the architect's role
@@ -106,12 +103,10 @@ Ownership is split: the orchestrator owns `task`, `tier`, `chain`, and `done` (a
 
 **What Claude Code MAY edit directly:**
 - Meta-configuration only: `CLAUDE.md`, `.claude/**`, `.agentNotes/**`, `docs/project-rules.md`
-- This is project configuration, not project code — no delegation needed
-- With the hooks installed this boundary is mechanical: `orchestrator-scope.sh` (PreToolUse) blocks main-session writes outside the list above — including the common Bash write forms (output redirection, `tee`, `sed -i`) against existing project files. Routing around the boundary through the shell is a protocol violation, not a loophole. Subagents are exempt and governed by their own tool policy
+- With the hooks installed this boundary is mechanical: `orchestrator-scope.sh` blocks main-session writes outside the list above — including the common Bash write forms (redirection, `tee`, `sed -i`) against existing project files. Routing around the boundary through the shell is a protocol violation, not a loophole. Subagents are exempt and governed by their own tool policy
+- **Exception — bootstrap:** the orchestrator directly edits `CLAUDE.md`, agent files, and `project-context.md` during bootstrap. Configuration, not project code.
 
-**Exception — bootstrap:** The orchestrator directly edits `CLAUDE.md`, agent files, and `project-context.md` during bootstrap. This is configuration, not project code — no delegation needed.
-
-**New session orientation:** Read `.claude/docs/project-context.md` first for a quick project overview, then this file for full rules. If `.agentNotes/chain-state.json` exists with an unfinished chain (`done` shorter than `chain`), a chain is in flight — resume from it. If `project-context.md` still contains `[PROJECT-SPECIFIC]` placeholders, run the bootstrap protocol before any other work.
+**New session orientation:** Read `.claude/docs/project-context.md` first for a quick overview, then this file for full rules. If `chain.sh show` reports a chain in flight, resume it. If `project-context.md` still contains `[PROJECT-SPECIFIC]` placeholders, run bootstrap before any other work.
 
 ## Skills
 
@@ -119,6 +114,8 @@ Ownership is split: the orchestrator owns `task`, `tier`, `chain`, and `done` (a
 |-------|---------|
 | `/bootstrap` | Run the bootstrap protocol to customize all `[PROJECT-SPECIFIC]` sections |
 | `/tier-check` | Analyze a task and recommend the appropriate tier (0-4) with full chain |
+| `/chain-status` | Show the in-flight chain: position, FAIL counters, recent verdicts |
+| `/abandon` | Cleanly abandon the in-flight chain (logged with a reason; user-invoked) |
 | `/commit` | Create a conventional commit from current changes |
 | `/push` | Push current branch to remote with safety checks |
 | `/re-review` | Re-run review chain on existing code (review only, no changes) |
@@ -136,13 +133,13 @@ All agents operate under a strict four-level knowledge hierarchy. Higher levels 
 4. .agentNotes/<agent>/notes.md         ← working memory, subordinate to all above
 ```
 
-Every agent reads CLAUDE.md **before** reading its own notes. If notes contradict CLAUDE.md or agent instructions, CLAUDE.md wins. Engineering skills (level 3) encode general best practices, not project facts — when a skill conflicts with levels 1-2, the project always wins. Notes are local only — never committed to git.
+Every agent reads CLAUDE.md **before** reading its own notes. If notes contradict CLAUDE.md or agent instructions, CLAUDE.md wins. Engineering skills encode general best practices, not project facts — when a skill conflicts with levels 1-2, the project wins. Notes are local only — never committed to git.
 
 ## Dev Cycle — Task-driven Review Chain
 
 **Claude Code (orchestrator) determines the tier and invokes the first agent.** Architect is only involved from Tier 2 upward. **docs is always last.**
 
-Each position in the chain is an engineering-lifecycle phase (DEFINE→PLAN→BUILD→VERIFY→REVIEW→SHIP), and each phase carries the skills its agent operates under — see [Engineering Skills](#engineering-skills--the-lifecycle-inside-the-chain). The tier therefore scales how much of the lifecycle runs: a higher tier adds phases (agents), which adds doctrine.
+Each position in the chain is an engineering-lifecycle phase (DEFINE→PLAN→BUILD→VERIFY→REVIEW→SHIP) and carries that phase's skills — see [Engineering Skills](#engineering-skills--the-lifecycle-inside-the-chain). The tier scales how much of the lifecycle runs.
 
 | Tier | Change type | Chain |
 |------|-------------|-------|
@@ -152,19 +149,26 @@ Each position in the chain is an engineering-lifecycle phase (DEFINE→PLAN→BU
 | 3 — Extended | New feature with external I/O, integration, or security surface | architect → quality-gate → developer → quality-gate → hunter OR defender → docs |
 | 4 — Full | New major component, security-critical change, core/shared code change | architect → quality-gate → developer → quality-gate → hunter → defender → docs |
 
-**Loop-back protocol:** Every review agent issues **PASS** or **FAIL**. FAIL pauses the chain and returns to the developer with a numbered remediation list. **Circuit breaker:** after 3 FAIL iterations on the same gate, the chain pauses and the orchestrator escalates to the user instead of looping further — repeated FAILs signal unclear requirements or a design flaw, not just an implementation slip.
+**Loop-back protocol:** every review agent issues **PASS** or **FAIL**. FAIL pauses the chain and returns to the developer with a numbered remediation list. **Circuit breaker:** after 3 FAIL iterations on the same gate, the chain pauses and the orchestrator escalates to the user — repeated FAILs signal unclear requirements or a design flaw, not an implementation slip.
 
-**Mechanical enforcement:** with the hooks from `settings.template.json` installed, both rules are enforced by code, not prose. `gate-verdict-check.sh` (SubagentStop) refuses to let a review agent finish without an explicit verdict or a `## BLOCKED` section, and records FAIL counts per gate in `.agentNotes/chain-state.json`. `chain-circuit-breaker.sh` (PreToolUse on agent spawning) blocks the next invocation of a gate that has issued 3 FAILs — the loop physically cannot continue until the user decides and the state file is reset (`rm .agentNotes/chain-state.json`). Stale counters can only escalate too early, never let a loop run too long.
+**Mechanical enforcement** — with the `settings.template.json` hooks installed, the protocol is code, not prose:
 
-More rings complete the enforcement: `orchestrator-scope.sh` (PreToolUse) keeps the orchestrator out of project files, a **semantic prompt hook** (PostToolUse on agent completion, runs on the small fast model) checks what regex cannot — that a FAIL carries a numbered remediation list, that a PASS handoff carries acceptance criteria — and feeds violations back as reasons, and `chain-orient.sh` (SessionStart, UserPromptSubmit, PostCompact) re-injects the chain manifest into context after compaction, session restarts, and `/resume`, so an in-flight chain resumes mechanically. `stop-chain-guard.sh` (Stop) refuses the orchestrator's first attempt to end a turn with an unfinished chain — continuing, waiting on the user, or abandoning must be stated explicitly; a tripped circuit breaker passes through, because that escalation pause IS the protocol. `tool-failure-log.sh` (PostToolUseFailure) records failed agent invocations in the chain log, so `/consolidate` sees them as evidence. Underneath the hooks, `settings.template.json` runs auto mode inside Claude Code's OS sandbox as the default posture, ships `permissions.deny` mirrors of the destructive-git patterns, and puts an `ask` gate on the enforcement layer itself (`.claude/hooks/**`, `settings*.json`) — changing the gates requires human approval.
+- `gate-verdict-check.sh` (SubagentStop): no review agent finishes without a VERDICT or `## BLOCKED`; FAIL counts land in the manifest, every verdict in `chain-log.jsonl`
+- `chain-circuit-breaker.sh` (PreToolUse): a gate at 3 FAILs cannot be re-invoked until the user decides (`chain.sh reset` / `abandon`)
+- `orchestrator-scope.sh` (PreToolUse): main-session writes outside meta-config are blocked, shell write forms included
+- Semantic prompt hook (PostToolUse, small model): a FAIL needs a numbered remediation list, a PASS handoff needs acceptance criteria
+- `chain-orient.sh` (SessionStart, UserPromptSubmit, PostCompact): re-injects the manifest after compaction, restarts, and `/resume`
+- `stop-chain-guard.sh` (Stop): no silent turn-end mid-chain; a tripped breaker passes through — that escalation pause IS the protocol
+- `tool-failure-log.sh` (PostToolUseFailure): failed agent invocations become chain-log evidence
+- Underneath: auto mode inside the OS sandbox as default posture, `permissions.deny` mirrors for destructive git, and an `ask` gate on the enforcement layer itself (`.claude/hooks/**`, `settings*.json`)
 
-**Chain routing:** Agents write a HANDOFF section with full context for the next agent. The orchestrator follows the tier chain by default but may override. Tier 3: hunter (external I/O, input parsers, network) vs defender (data persistence, audit trails, file integrity). **Tier 4 parallel review:** hunter and defender are independent, read-only, and need nothing from each other — invoke them in parallel (two Task calls in one message); docs still runs last after both return.
+**Chain routing:** agents write a HANDOFF section with full context for the next agent. The orchestrator follows the tier chain by default but may override. Tier 3: hunter (external I/O, input parsers, network) vs defender (data persistence, audit trails, file integrity). **Tier 4 parallel review:** hunter and defender are independent and read-only — invoke them in parallel (two Task calls in one message); docs still runs last.
 
-**UI chain insertion:** When a Tier 2-4 task involves UI changes, insert ui-designer after architect and before quality-gate (e.g., architect → ui-designer → quality-gate → developer → ...).
+**UI chain insertion:** when a Tier 2-4 task involves UI changes, insert ui-designer after architect and before quality-gate.
 
-**Tier upgrade rules:** New major component or security-sensitive operations (auth, crypto) → Tier 4. External network requests, persistent artifacts, or shared/core code changes → at least Tier 3. New files → at least Tier 2. When in doubt, upgrade. **Calibration:** when the tier is not obvious, consult `.claude/docs/tier-casebook.md` — worked examples beat rules on borderline cases. Whenever the user corrects a tier decision, append that case to the casebook — both the markdown row and its `tier-casebook.jsonl` record (`casebook-format.md` defines the schema).
+**Tier upgrade rules:** new major component or security-sensitive operations (auth, crypto) → Tier 4. External network requests, persistent artifacts, or shared/core code changes → at least Tier 3. New files → at least Tier 2. When in doubt, upgrade. **Calibration:** when the tier is not obvious, consult `.claude/docs/tier-casebook.md` — worked examples beat rules on borderline cases. Whenever the user corrects a tier decision, append the case to the casebook — both the markdown row and its `tier-casebook.jsonl` record (`casebook-format.md` defines the schema).
 
-**Worktree isolation:** For Tier 3-4 changes with high blast radius, the orchestrator MAY invoke developer with `isolation: "worktree"` to work on an isolated git copy. The worktree is auto-cleaned if no changes are made.
+**Worktree isolation:** for Tier 3-4 changes with high blast radius, the orchestrator MAY invoke developer with `isolation: "worktree"`. The worktree is auto-cleaned if no changes are made.
 
 ## Agent Team
 
@@ -180,7 +184,7 @@ More rings complete the enforcement: `orchestrator-scope.sh` (PreToolUse) keeps 
 
 ## Consultant Pool (on-demand, outside the tier table)
 
-Four read-only consultants provide a different lens when the work needs one. They are **not chain gates**: they issue findings and recommendations, never PASS/FAIL verdicts, and no tier requires them.
+Four read-only consultants provide a different lens when the work needs one. They are **not chain gates**: findings and recommendations only, never PASS/FAIL verdicts, and no tier requires them.
 
 | Consultant | Lens | Typical trigger |
 |-----------|------|-----------------|
@@ -189,29 +193,11 @@ Four read-only consultants provide a different lens when the work needs one. The
 | `optimizer` | Performance and efficiency deep-dive | Performance IS the task, or a change deserves a dedicated pass beyond quality-gate's conditional perf review |
 | `researcher` | Evidence-based web research — dependency choices, best-practice surveys, CVEs, ecosystem facts | A technology decision needs sources; unfamiliar territory before architecture |
 
-**Invocation:** the orchestrator spawns a consultant on its own judgment, on a user request, or on another agent's HANDOFF recommendation. A consultant can join at any point in any tier's chain without changing the tier.
-
-**Findings flow back** to the requesting agent or the orchestrator. A consultant's Critical finding is a signal to upgrade the tier, re-run a gate, or return to the authoring agent — the orchestrator decides and surfaces it to the user. Consultants persist notes via `## NOTES UPDATE` like other read-only agents.
-
-This pool is also how the orchestrator realizes the `doubt-driven-development` skill (see `.claude/agent-skills/INTEGRATION.md`): `critic` is the fresh-context reviewer that skill calls for.
+The orchestrator spawns a consultant on its own judgment, a user request, or an agent's HANDOFF recommendation — at any point, in any tier, without changing the tier. Findings flow back to the requester; a Critical finding is a signal to upgrade the tier, re-run a gate, or return to the authoring agent — the orchestrator decides and surfaces it to the user. Consultants persist notes via `## NOTES UPDATE`. This pool realizes the `doubt-driven-development` skill: `critic` is its fresh-context reviewer (see `INTEGRATION.md`).
 
 ## Engineering Skills — the lifecycle inside the chain
 
-The tier chain **is** the engineering lifecycle. Each position in the chain is a
-lifecycle phase, and each phase carries vendored **engineering skills** (the doctrine
-for *how* to do that phase well — spec, TDD, secure design, review, ship). The skills
-live in `.claude/agent-skills/` (23 of them, from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), MIT).
-
-**Activation is structural, not explicit.** An agent operates under the skills mapped
-to its phase as a **mandatory part of its workflow** — nobody "calls" a skill. Being
-the developer in BUILD *means* operating under TDD and incremental-implementation. This
-is the symbiosis: the framework supplies *who / when / with what control* (chain, tiers,
-gates); the skills supply *how to do the work well*.
-
-**Tier scales depth automatically.** The tier decides which phases run (which agents are
-in the chain), so it decides how much doctrine applies — no separate "when to load a
-skill" logic. Tier 0 runs a slice of BUILD with light doctrine; Tier 4 runs the whole
-DEFINE→SHIP lifecycle with all of it.
+The tier chain **is** the engineering lifecycle. Each chain position is a phase carrying vendored engineering skills (`.claude/agent-skills/`, 23 from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), MIT). **Activation is structural, not explicit** — nobody "calls" a skill: being the developer in BUILD *means* operating under TDD and incremental-implementation. The tier decides which phases run, so it decides how much doctrine applies.
 
 | Phase | Agent(s) | Skills (core) |
 |-------|----------|---------------|
@@ -222,40 +208,13 @@ DEFINE→SHIP lifecycle with all of it.
 | REVIEW | quality-gate, hunter, defender | `code-review-and-quality`, `code-simplification`, `performance-optimization`, `security-and-hardening` |
 | SHIP | docs, orchestrator | `documentation-and-adrs`, `git-workflow-and-versioning`, `shipping-and-launch` |
 
-Each agent's full core + conditional skill set, the orchestrator-level skills, and the
-per-project activation rules live in **`.claude/agent-skills/README.md`** — the single
-source of truth for the mapping. Agents self-load their mapped skills (see each agent's
-`## Before any task`).
+The full per-agent mapping and activation rules live in **`.claude/agent-skills/README.md`** — the single source of truth. Agents self-load their mapped skills via `## Before any task`.
 
-**Two-tier read.** Every skill has an operating card in `.claude/agent-skills/cards/` —
-a distillation of its binding rules, scope limits, and go-deep triggers. Reading the card
-is the **default** way to operate under a mapped skill on every task; read the full
-`SKILL.md` when a go-deep trigger on the card fires, when the task is centrally about that
-skill's domain, or when the card leaves you uncertain. The full skill is canonical — on
-conflict it wins over the card (read protocol: `INTEGRATION.md`, bridge 6).
+**Two-tier read:** every skill has an operating card in `.claude/agent-skills/cards/` — binding rules, scope limits, go-deep triggers. The card is the default read on every task; open the full `SKILL.md` when a go-deep trigger fires, when the task is centrally about that skill's domain, or when the card leaves you uncertain. The full skill is canonical on conflict (read protocol: `INTEGRATION.md`, bridge 6).
 
-**Orchestrator DEFINE-phase trigger (mandatory — symmetric with the agents).** Dev-cycle
-agents load their phase skills via their own `## Before any task`; the orchestrator must do
-the same for the DEFINE phase, otherwise those skills stay inert. When an incoming request
-is **underspecified** (no clear *for whom / why now*, vague scope) or the user asks to
-refine or stress-test an idea, **read and follow** `.claude/agent-skills/interview-me/SKILL.md`
-(one question at a time until ~95% confidence) or `.claude/agent-skills/idea-refine/SKILL.md`
-**before** classifying the tier or starting the chain. Consult `context-engineering` when
-setting up a new session or when agent output quality degrades. The distilled Operating
-Behaviors (#1 Surface Assumptions) are the always-on baseline; these skills are the **full
-protocol** when the ask warrants it — do not stop at the baseline when the request is
-genuinely vague.
+**Orchestrator DEFINE-phase trigger (mandatory — symmetric with the agents):** when an incoming request is **underspecified** (no clear *for whom / why now*, vague scope) or the user asks to refine or stress-test an idea, read and follow `.claude/agent-skills/interview-me/SKILL.md` (one question at a time until ~95% confidence) or `idea-refine/SKILL.md` **before** classifying the tier. Consult `context-engineering` when setting up a new session or when agent output quality degrades. The Operating Behaviors are the always-on baseline; these skills are the full protocol when the ask warrants it — do not stop at the baseline when the request is genuinely vague.
 
-**Per-project activation:** the table above is the full catalog. Bootstrap infers the
-*active* set from the project profile (UI → frontend/browser skills; web → performance/
-observability; CLI → neither) and records it here and in `project-context.md`. Inactive
-skills stay on disk but drop out of the agents' mapping, so no agent reads doctrine that
-doesn't apply.
-
-Skills are **level-3 reference** (see Knowledge Hierarchy): subordinate to CLAUDE.md and
-`docs/project-rules.md`. They illustrate principles with a specific stack — the principle
-transfers; the project's actual stack is whatever bootstrap recorded. When a skill
-conflicts with the project, the project wins.
+**Per-project activation:** bootstrap infers the *active* set from the project profile (UI → frontend/browser skills; web → performance/observability; CLI → neither) and records it here and in `project-context.md`. Inactive skills stay on disk but drop out of the agents' mapping. Skills are **level-3 reference** (see Knowledge Hierarchy): they illustrate principles with a specific stack — the principle transfers, and when a skill conflicts with the project, the project wins.
 
 ## Language & Style
 
