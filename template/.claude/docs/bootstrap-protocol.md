@@ -232,9 +232,15 @@ Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sec
    - Documentation templates for the project's component type
    - What documents to maintain and their update triggers
 
-9. **`.claude/docs/project-context.md`** — Fill in all sections, including the "Engineering Skills (active set)" table from Phase 3b (must match the active set written to `CLAUDE.md`).
-10. **`docs/project-rules.md`** — Create this file during bootstrap with project-specific implementation rules extracted from CLAUDE.md. Move detailed conventions (language & style, naming, testing, environment, what NOT to do) here. This keeps CLAUDE.md lean for the orchestrator while agents get full rules.
-11. **Agent self-load update** — After creating `docs/project-rules.md`, update every agent's `## Before any task` section to include:
+9. **The four consultant agents** — each ships with a single `[PROJECT-SPECIFIC]` line; fill all four so no placeholder survives (Phase 5 fails otherwise). These are on-demand consultants, not chain gates, but their instructions still specialize to the project. A project that genuinely has nothing yet for one may say so briefly (e.g. "No formal performance SLAs defined yet") rather than leave the placeholder:
+   - **`.claude/agents/critic.md`** — domain-specific reasoning pitfalls and decision conventions worth extra scrutiny
+   - **`.claude/agents/incident.md`** — incident severity definitions, escalation paths, log locations, and deploy/rollback specifics
+   - **`.claude/agents/optimizer.md`** — performance SLAs, known hot paths, profiling tools available, and cost targets
+   - **`.claude/agents/researcher.md`** — preferred documentation sources, internal registries, license policy, and source-quality criteria
+
+10. **`.claude/docs/project-context.md`** — Fill in all sections, including the "Engineering Skills (active set)" table from Phase 3b (must match the active set written to `CLAUDE.md`).
+11. **`docs/project-rules.md`** — Create this file during bootstrap with project-specific implementation rules extracted from CLAUDE.md. Move detailed conventions (language & style, naming, testing, environment, what NOT to do) here. This keeps CLAUDE.md lean for the orchestrator while agents get full rules.
+12. **Agent self-load update** — After creating `docs/project-rules.md`, update every agent's `## Before any task` section to include:
     ```
     1. Read `CLAUDE.md` for project principles and chain rules.
     2. Read `docs/project-rules.md` for implementation conventions.
@@ -244,14 +250,14 @@ Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sec
 ### Phase 5 — Verification
 
 After updating all files:
-1. Read back each modified file to verify no `[PROJECT-SPECIFIC]` placeholders remain (check `CLAUDE.md`, all 7 agent files under `.claude/agents/`, `.claude/docs/project-context.md`, AND `docs/project-rules.md`)
+1. Read back each modified file to verify no `[PROJECT-SPECIFIC]` placeholders remain (check `CLAUDE.md`, all 11 agent files under `.claude/agents/` — the 7 team agents AND the 4 consultants (critic, incident, optimizer, researcher), `.claude/docs/project-context.md`, AND `docs/project-rules.md`). A reliable check: `grep -rl '\[PROJECT-SPECIFIC\]' CLAUDE.md .claude/agents docs` must return nothing.
 2. Verify consistency across files (same architecture description, same conventions, and the **active engineering skill set is identical** in `CLAUDE.md` and `project-context.md`)
 3. Report to the user:
 
 ```
 BOOTSTRAP COMPLETE
 ==================
-Updated: CLAUDE.md, 7 agent files, project-context.md, project-rules.md
+Updated: CLAUDE.md, 11 agent files, project-context.md, project-rules.md
 Active engineering skills: <N> of 23 (inactive: <list or "none">)
 Remaining placeholders: 0
 Ready to start development.
