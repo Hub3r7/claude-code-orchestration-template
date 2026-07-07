@@ -250,7 +250,7 @@ Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sec
 ### Phase 5 — Verification
 
 After updating all files:
-1. Read back each modified file to verify no `[PROJECT-SPECIFIC]` placeholders remain (check `CLAUDE.md`, all 11 agent files under `.claude/agents/` — the 7 team agents AND the 4 consultants (critic, incident, optimizer, researcher), `.claude/docs/project-context.md`, AND `docs/project-rules.md`). A reliable check: `grep -rl '\[PROJECT-SPECIFIC\]' CLAUDE.md .claude/agents docs` must return nothing.
+1. Read back each modified file to verify no `[PROJECT-SPECIFIC]` placeholders remain (check `CLAUDE.md`, all 11 agent files under `.claude/agents/` — the 7 team agents AND the 4 consultants (critic, incident, optimizer, researcher), `.claude/docs/project-context.md`, AND `docs/project-rules.md`). A reliable check — match the **comment form** of a real placeholder, since a bootstrapped `CLAUDE.md` legitimately still mentions `` `[PROJECT-SPECIFIC]` `` in backticks in its instructional prose: `grep -rlE '<!--[[:space:]]*\[PROJECT-SPECIFIC\]' CLAUDE.md .claude/agents .claude/docs docs` must return nothing.
 2. Verify consistency across files (same architecture description, same conventions, and the **active engineering skill set is identical** in `CLAUDE.md` and `project-context.md`)
 3. Report to the user:
 

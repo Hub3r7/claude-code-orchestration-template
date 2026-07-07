@@ -47,7 +47,9 @@ mkdir -p .agentNotes 2>/dev/null && touch .agentNotes/.doctor 2>/dev/null && rm 
   && ok ".agentNotes writable" \
   || bad "cannot create/write .agentNotes/"
 
-grep -q "\[PROJECT-SPECIFIC\]" CLAUDE.md 2>/dev/null \
+# Match the comment form of a real UNFILLED placeholder, not the bare string — a
+# bootstrapped CLAUDE.md still mentions `[PROJECT-SPECIFIC]` in its instructional prose.
+grep -qE "<!--[[:space:]]*\[PROJECT-SPECIFIC\]" CLAUDE.md 2>/dev/null \
   && echo "  NOTE CLAUDE.md still has [PROJECT-SPECIFIC] placeholders — run /bootstrap before real work"
 
 if [ "$fail" -eq 0 ]; then
