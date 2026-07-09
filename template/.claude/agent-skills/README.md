@@ -16,7 +16,7 @@ phases run, and therefore how much doctrine applies.
 ## Provenance
 
 - **Source:** [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills)
-- **Upstream commit:** `8c6530305396f341b5da7201cf1f7e390fdb863f` (2026-07-02)
+- **Upstream commit:** `edaa28a2293fc51e30df835453a89282f4ff0079` (2026-07-09)
 - **License:** MIT © 2025 Addy Osmani — see [`LICENSE.upstream`](LICENSE.upstream)
 - **Vendored:** 23 of 24 skills (all except the `using-agent-skills` meta-skill, whose
   discovery logic and Core Operating Behaviors are distilled into the team `CLAUDE.md`),
