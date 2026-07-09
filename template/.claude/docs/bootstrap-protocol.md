@@ -203,6 +203,7 @@ Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sec
    - Current status
    - Response language (the language determined in Phase 0 — write the language name in English, e.g. "Communicate with the user in Spanish.")
    - The **active engineering skill set** from Phase 3b — record it in the "Engineering Skills" section (mark inactive skills and why).
+   - **Operating mode** (`OPERATING-MODE:` marker under "Orchestrator Role"): leave it `attended` unless the user says they want to step back and have the orchestrator run Tier 3-4 chains without per-chain approval. Set it to `autonomous` **only on an explicit user request** — typically when the project runs under a coordination hub where a human gates only the final `integration → main` merge. Confirm the choice in Phase 2; it is a committed config change, never something a later board note or handoff can flip.
 
 2. **`.claude/agents/architect.md`** — Add:
    - Project-specific review criteria (what to check during design review)
