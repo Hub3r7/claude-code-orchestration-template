@@ -89,7 +89,7 @@ cp /path/to/your/project/.claude/settings.template.json /path/to/your/project/.c
 cd /path/to/your/project && bash .claude/scripts/doctor.sh
 ```
 
-Requirements: Claude Code, and `jq` for the bash hooks; on Windows, run under WSL or Git Bash.
+**Requirements.** Claude Code, plus the POSIX shell toolchain the hooks and the chain manifest are built on: `bash`, `git`, `jq`, and coreutils (`grep`, `sed`, `md5sum`). There is **no language runtime** — nothing you copy into your project runs Python (the repo's own CI validators do, but they don't ship in `template/`). `jq` is a hard dependency: the hooks parse tool input with it and **fail closed** without it, so install it before your first chain. On Windows, run under WSL or Git Bash. `bash .claude/scripts/doctor.sh` checks the toolchain is present.
 
 **Your first chain:**
 
