@@ -247,6 +247,7 @@ Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sec
     2. Read `docs/project-rules.md` for implementation conventions.
     ```
     Agents that also need `docs/command-conventions.md` or equivalent should list it as item 3.
+13. **`.gitignore`** — the framework generates runtime artifacts that must never be committed (`.agentNotes/` — CLAUDE.md says notes are local only; `reports/hunter/`; `.claude/settings.local.json`). The template ships a `.gitignore` with these. On a **greenfield** project it is already in place; on an **existing** project that already has a `.gitignore`, **append** the three framework lines to it (don't overwrite the project's own ignores). Verify `.agentNotes/` is ignored (`git check-ignore .agentNotes/` returns a match) before the first commit.
 
 ### Phase 5 — Verification
 

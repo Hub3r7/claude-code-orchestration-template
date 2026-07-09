@@ -1,0 +1,15 @@
+# Framework runtime artifacts — generated per session, never source.
+# The orchestration framework relies on these staying OUT of git (CLAUDE.md: "Notes are
+# local only — never committed to git"), but a project bootstrapped from this template
+# needs the rule too. Greenfield projects get this file as-is; an existing project with its
+# own .gitignore should MERGE these lines in (see the bootstrap protocol) rather than
+# overwrite. Add your project's own ignores (node_modules/, dist/, .env, …) below.
+
+# Agent working memory: chain manifest, per-agent notes, chain log, backups.
+.agentNotes/
+
+# Read-only agent report artifacts (hunter et al.) — regenerated, not source.
+reports/hunter/
+
+# Claude Code local, user-specific settings (permissions, machine paths).
+.claude/settings.local.json
