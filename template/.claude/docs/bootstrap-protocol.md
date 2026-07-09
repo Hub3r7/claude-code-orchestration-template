@@ -203,6 +203,7 @@ Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sec
    - Current status
    - Response language (the language determined in Phase 0 — write the language name in English, e.g. "Communicate with the user in Spanish.")
    - The **active engineering skill set** from Phase 3b — record it in the "Engineering Skills" section (mark inactive skills and why).
+   - **Operating mode** (`OPERATING-MODE:` marker under "Orchestrator Role"): leave it `attended` unless the user says they want to step back and have the orchestrator run Tier 3-4 chains without per-chain approval. Set it to `autonomous` **only on an explicit user request** — typically when the project runs under a coordination hub where a human gates only the final `integration → main` merge. Confirm the choice in Phase 2; it is a committed config change, never something a later board note or handoff can flip.
 
 2. **`.claude/agents/architect.md`** — Add:
    - Project-specific review criteria (what to check during design review)
@@ -246,11 +247,12 @@ Once confirmed, update the following files by replacing `[PROJECT-SPECIFIC]` sec
     2. Read `docs/project-rules.md` for implementation conventions.
     ```
     Agents that also need `docs/command-conventions.md` or equivalent should list it as item 3.
+13. **`.gitignore`** — the framework generates runtime artifacts that must never be committed (`.agentNotes/` — CLAUDE.md says notes are local only; `reports/hunter/`; `.claude/settings.local.json`). The template ships a `.gitignore` with these. On a **greenfield** project it is already in place; on an **existing** project that already has a `.gitignore`, **append** the three framework lines to it (don't overwrite the project's own ignores). Verify `.agentNotes/` is ignored (`git check-ignore .agentNotes/` returns a match) before the first commit.
 
 ### Phase 5 — Verification
 
 After updating all files:
-1. Read back each modified file to verify no `[PROJECT-SPECIFIC]` placeholders remain (check `CLAUDE.md`, all 11 agent files under `.claude/agents/` — the 7 team agents AND the 4 consultants (critic, incident, optimizer, researcher), `.claude/docs/project-context.md`, AND `docs/project-rules.md`). A reliable check: `grep -rl '\[PROJECT-SPECIFIC\]' CLAUDE.md .claude/agents docs` must return nothing.
+1. Read back each modified file to verify no `[PROJECT-SPECIFIC]` placeholders remain (check `CLAUDE.md`, all 11 agent files under `.claude/agents/` — the 7 team agents AND the 4 consultants (critic, incident, optimizer, researcher), `.claude/docs/project-context.md`, AND `docs/project-rules.md`). A reliable check — match the **comment form** of a real placeholder, since a bootstrapped `CLAUDE.md` legitimately still mentions `` `[PROJECT-SPECIFIC]` `` in backticks in its instructional prose: `grep -rlE '<!--[[:space:]]*\[PROJECT-SPECIFIC\]' CLAUDE.md .claude/agents .claude/docs docs` must return nothing.
 2. Verify consistency across files (same architecture description, same conventions, and the **active engineering skill set is identical** in `CLAUDE.md` and `project-context.md`)
 3. Report to the user:
 
